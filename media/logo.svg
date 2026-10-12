@@ -53,6 +53,8 @@
       <feGaussianBlur stdDeviation="4" result="b"/>
       <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
+    <clipPath id="pEyeL"><path d="M 322 440 C 324 418, 366 412, 376 434 C 372 454, 334 460, 322 440 Z"/></clipPath>
+    <clipPath id="pEyeR"><path d="M 420 442 C 424 414, 476 408, 488 434 C 484 460, 434 466, 420 442 Z"/></clipPath>
     <clipPath id="lens"><circle cx="400" cy="400" r="196"/></clipPath>
     <clipPath id="rightHalf"><rect x="400" y="180" width="220" height="440"/></clipPath>
     <clipPath id="lensL"><circle cx="356" cy="424" r="40"/></clipPath>
@@ -94,45 +96,51 @@
   <circle cx="400" cy="400" r="232" fill="#00A4DC" opacity="0.22" filter="url(#glow)"/>
   <circle cx="400" cy="400" r="196" fill="url(#glass)"/>
   <g clip-path="url(#lens)">
-    <!-- ===== original detective, head turned and tilted down, thinking hard ===== -->
-    <g transform="translate(400 404) scale(0.84) translate(-400 -430) rotate(-7 400 430)">
-      <!-- captain's coat with gold trim over an open white shirt -->
-      <path d="M 196 660 L 250 566 L 356 540 L 400 660 Z" fill="#2f3f8f"/>
-      <path d="M 604 660 L 552 562 L 448 538 L 404 660 Z" fill="#2f3f8f"/>
-      <path d="M 356 540 L 400 610 L 448 538 L 446 660 L 356 660 Z" fill="#f7f8fc"/>
-      <path d="M 378 556 L 400 610 L 424 556" fill="none" stroke="#d9dcea" stroke-width="3"/>
-      <path d="M 250 566 L 356 540 L 400 660" fill="none" stroke="#f5c542" stroke-width="7" stroke-linejoin="round"/>
-      <path d="M 552 562 L 448 538 L 404 660" fill="none" stroke="#f5c542" stroke-width="7" stroke-linejoin="round"/>
-      <path d="M 236 590 L 300 572" stroke="#f5c542" stroke-width="5" stroke-linecap="round"/>
-      <path d="M 566 588 L 502 570" stroke="#f5c542" stroke-width="5" stroke-linecap="round"/>
-      <!-- neck -->
-      <path d="M 378 520 L 440 520 L 446 586 L 384 586 Z" fill="#d9ad96"/>
+    <g transform="translate(400 404) scale(0.86) translate(-400 -440) rotate(-5 400 440)">
+      <!-- coat: shoulders, lapels with gold edge, open shirt -->
+      <path d="M 196 690 C 206 616, 252 576, 340 556 L 384 690 Z" fill="#34449a" stroke="#2a1f3d" stroke-width="3.5" stroke-linejoin="round"/>
+      <path d="M 604 690 C 594 616, 548 576, 460 556 L 416 690 Z" fill="#34449a" stroke="#2a1f3d" stroke-width="3.5" stroke-linejoin="round"/>
+      <path d="M 340 556 L 400 632 L 460 556 L 452 690 L 348 690 Z" fill="#f7f8fc" stroke="#2a1f3d" stroke-width="3.5" stroke-linejoin="round"/>
+      <path d="M 340 556 L 308 606 L 356 628 Z" fill="#283680" stroke="#2a1f3d" stroke-width="3.5" stroke-linejoin="round"/>
+      <path d="M 460 556 L 492 606 L 444 628 Z" fill="#283680" stroke="#2a1f3d" stroke-width="3.5" stroke-linejoin="round"/>
+      <path d="M 340 556 L 384 690 M 460 556 L 416 690" stroke="#f5c542" stroke-width="6" stroke-linecap="round"/>
+      <path d="M 252 600 C 270 590, 290 584, 310 582 M 548 600 C 530 590, 510 584, 490 582" fill="none" stroke="#f5c542" stroke-width="4" stroke-linecap="round"/>
 
-      <!-- hair mass behind -->
-      <path d="M 284 408 C 254 340, 262 270, 300 240 C 334 210, 380 198, 420 202 C 472 206, 522 230, 542 274 C 558 312, 552 364, 528 412 L 512 404 C 472 332, 340 328, 296 404 Z" fill="url(#hair)"/>
-      <g fill="url(#hair)">
-        <path d="M 270 300 L 236 290 L 268 336 Z"/>
-        <path d="M 544 318 L 576 312 L 548 352 Z"/>
-      </g>
-      <!-- ear (near side) -->
-      <ellipse cx="510" cy="440" rx="16" ry="26" fill="#e9c4ae"/>
-      <path d="M 512 428 C 504 434, 504 448, 512 454" fill="none" stroke="#c48f78" stroke-width="3" stroke-linecap="round"/>
-      <circle cx="508" cy="468" r="8" fill="none" stroke="#f5c542" stroke-width="4"/>
-      <!-- face, three-quarter view -->
-      <path id="face3q" d="M 300 362 C 294 442, 318 502, 370 540 C 394 556, 422 554, 442 538 C 488 502, 508 452, 506 384 C 482 334, 330 322, 300 362 Z" fill="url(#skin)"/>
-      <path d="M 300 362 C 296 436, 316 494, 352 528 C 330 492, 318 440, 322 382 Z" fill="#d6a68e" opacity="0.45"/>
-      <path d="M 302 356 L 506 380 L 504 420 C 450 402, 360 394, 302 404 Z" fill="#b98a7a" opacity="0.25"/>
-      <!-- spiky bangs -->
-      <path d="M 288 368 L 296 300 C 330 256, 470 252, 518 314 L 512 380 L 494 340 L 482 396 L 458 334 L 440 384 L 420 328 L 398 386 L 380 330 L 360 392 L 344 336 L 322 394 L 314 344 Z" fill="url(#hair)"/>
-      
-      <!-- pirate bandana -->
-      <path d="M 520 318 C 548 326, 572 352, 578 384 C 566 370, 552 360, 538 356 Z" fill="#1f9fae"/>
-      <path d="M 522 326 C 552 344, 566 380, 560 414 C 552 392, 540 374, 526 362 Z" fill="#2bb8c8"/>
-      <path d="M 282 340 C 272 254, 334 212, 406 210 C 478 210, 534 252, 526 336 C 470 316, 338 316, 282 340 Z" fill="#2bb8c8"/>
-      <path d="M 282 340 C 338 316, 470 316, 526 336" fill="none" stroke="#1a8b98" stroke-width="9" stroke-linecap="round"/>
-      <path d="M 320 250 C 360 226, 430 222, 470 236" fill="none" stroke="#9ff0f7" stroke-width="7" stroke-linecap="round" opacity="0.6"/>
-      <circle cx="526" cy="330" r="15" fill="#1f9fae"/>
-      <g transform="translate(404 270)">
+      <!-- neck -->
+      <path d="M 374 506 L 428 506 L 432 584 C 414 600, 390 600, 370 584 Z" fill="#e8bea7" stroke="#2a1f3d" stroke-width="3.5" stroke-linejoin="round"/>
+
+      <!-- side hair under the bandana -->
+      <path d="M 296 334 C 270 384, 266 444, 288 492 L 306 470 L 300 506 L 330 470 L 318 432 L 330 444 L 322 388 Z" fill="url(#hair)" stroke="#2a1f3d" stroke-width="3.5" stroke-linejoin="round"/>
+      <path d="M 508 334 C 538 380, 548 440, 528 488 L 512 468 L 516 502 L 488 466 L 500 430 L 486 442 L 494 388 Z" fill="url(#hair)" stroke="#2a1f3d" stroke-width="3.5" stroke-linejoin="round"/>
+
+      <!-- ear + earring -->
+      <ellipse cx="514" cy="442" rx="15" ry="24" fill="#f6d8c6" stroke="#2a1f3d" stroke-width="3.5" stroke-linejoin="round"/>
+      <path d="M 516 430 C 508 436, 508 450, 516 456" fill="none" stroke="#2a1f3d" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+      <circle cx="512" cy="472" r="8" fill="none" stroke="#f5c542" stroke-width="4.5"/>
+
+      <!-- face -->
+      <path d="M 300 350 C 294 440, 320 502, 372 542 C 396 558, 424 558, 446 542 C 492 506, 514 452, 510 350 Z" fill="url(#skin)" stroke="#2a1f3d" stroke-width="3.5" stroke-linejoin="round"/>
+      <path d="M 304 380 C 302 444, 324 498, 366 532 C 342 494, 328 446, 330 392 Z" fill="#e2b29b" opacity="0.35"/>
+      <ellipse cx="334" cy="490" rx="18" ry="9" fill="#f29a8c" opacity="0.35"/>
+      <ellipse cx="478" cy="490" rx="20" ry="10" fill="#f29a8c" opacity="0.35"/>
+
+      <!-- bangs: varied curved strands -->
+      <path d="M 294 360 C 298 318, 330 300, 362 298 L 402 298 C 444 298, 488 306, 514 348
+               L 508 396 C 500 376, 490 362, 478 354 C 476 374, 470 388, 458 398 C 456 380, 450 364, 438 354
+               C 432 372, 420 386, 406 392 C 408 374, 404 362, 396 352 C 388 368, 376 382, 360 388
+               C 364 372, 364 362, 358 352 C 348 368, 336 380, 320 386 C 326 372, 326 362, 322 358
+               C 314 370, 306 382, 298 398 Z" fill="url(#hair)" stroke="#2a1f3d" stroke-width="3.5" stroke-linejoin="round"/>
+      <path d="M 428 316 C 444 318, 460 326, 470 338 M 372 316 C 360 320, 348 330, 342 340" fill="none" stroke="#ffd9a8" stroke-width="4" stroke-linecap="round" opacity="0.8"/>
+
+      <!-- bandana: knot + tails, dome, rim, folds, emblem -->
+      <path d="M 520 344 C 548 356, 564 384, 560 420 C 548 400, 536 386, 518 376 Z" fill="#1f9fae" stroke="#2a1f3d" stroke-width="3.5" stroke-linejoin="round"/>
+      <path d="M 522 336 C 556 336, 580 358, 588 388 C 570 372, 550 362, 526 360 Z" fill="#2bb8c8" stroke="#2a1f3d" stroke-width="3.5" stroke-linejoin="round"/>
+      <path d="M 284 356 C 278 272, 336 224, 406 222 C 476 222, 530 270, 522 354 C 468 334, 340 334, 284 356 Z" fill="#2bb8c8" stroke="#2a1f3d" stroke-width="3.5" stroke-linejoin="round"/>
+      <path d="M 284 356 C 340 334, 468 334, 522 354 L 520 334 C 466 314, 340 314, 287 336 Z" fill="#1f9fae" stroke="#2a1f3d" stroke-width="3.5" stroke-linejoin="round"/>
+      <path d="M 330 252 C 356 238, 390 232, 420 234 M 476 262 C 492 278, 500 298, 502 318" fill="none" stroke="#1a8b98" stroke-width="3" stroke-linecap="round"/>
+      <path d="M 318 268 C 340 246, 376 234, 404 232" fill="none" stroke="#a8f2f8" stroke-width="5" stroke-linecap="round" opacity="0.7"/>
+      <circle cx="522" cy="344" r="13" fill="#1f9fae" stroke="#2a1f3d" stroke-width="3.5" stroke-linejoin="round"/>
+      <g transform="translate(404 280) scale(0.9)">
         <path d="M -22 18 L 22 34 M 22 18 L -22 34" stroke="#ffffff" stroke-width="6" stroke-linecap="round"/>
         <circle cx="0" cy="0" r="17" fill="#ffffff"/>
         <rect x="-9" y="10" width="18" height="11" rx="3" fill="#ffffff"/>
@@ -140,65 +148,67 @@
         <path d="M -4 16 v 5 M 0 16 v 5 M 4 16 v 5" stroke="#1a8b98" stroke-width="1.6"/>
       </g>
 
-      <!-- confident brows -->
-      <path d="M 316 390 C 334 380, 360 382, 380 394 L 377 402 C 358 392, 336 390, 318 400 Z" fill="#a13d17"/>
-      <path d="M 486 384 C 466 374, 440 376, 420 390 L 423 398 C 442 386, 466 384, 484 394 Z" fill="#a13d17"/>
+      <!-- brows -->
+      <path d="M 320 402 C 336 392, 358 392, 376 402 L 374 410 C 358 402, 338 402, 322 410 Z" fill="#a13d17"/>
+      <path d="M 486 398 C 466 388, 442 388, 422 400 L 425 408 C 444 398, 466 398, 484 406 Z" fill="#a13d17"/>
 
-      <!-- wide, intense eyes with small pupils glancing sideways -->
-      <ellipse cx="346" cy="436" rx="24" ry="28" fill="#ffffff"/>
-      <ellipse cx="448" cy="438" rx="29" ry="32" fill="#ffffff"/>
-      <circle cx="347" cy="438" r="9" fill="#0a0f2a"/>
-      <circle cx="448" cy="440" r="10" fill="#0a0f2a"/>
-      <circle cx="343" cy="434" r="3" fill="#ffffff"/>
-      <circle cx="444" cy="435" r="3.5" fill="#ffffff"/>
-      <path d="M 320 430 C 326 406, 366 404, 372 428" fill="none" stroke="#0a0f2a" stroke-width="6" stroke-linecap="round"/>
-      <path d="M 418 430 C 424 400, 474 400, 480 430" fill="none" stroke="#0a0f2a" stroke-width="6.5" stroke-linecap="round"/>
-      <path d="M 324 452 C 334 464, 356 466, 368 456" fill="none" stroke="#0a0f2a" stroke-width="2.5" stroke-linecap="round" opacity="0.7"/>
-      <path d="M 422 456 C 434 470, 462 472, 476 460" fill="none" stroke="#0a0f2a" stroke-width="2.5" stroke-linecap="round" opacity="0.7"/>
+      <!-- eyes: almond, clipped iris, defined lids -->
+      <path d="M 322 440 C 324 418, 366 412, 376 434 C 372 454, 334 460, 322 440 Z" fill="#ffffff"/>
+      <path d="M 420 442 C 424 414, 476 408, 488 434 C 484 460, 434 466, 420 442 Z" fill="#ffffff"/>
+      <g clip-path="url(#pEyeL)">
+        <ellipse cx="351" cy="437" rx="14" ry="17" fill="url(#iris)"/>
+        <circle cx="351" cy="438" r="6" fill="#0a0f2a"/>
+        <circle cx="346" cy="432" r="3.5" fill="#ffffff"/><circle cx="356" cy="444" r="1.8" fill="#ffffff"/>
+      </g>
+      <g clip-path="url(#pEyeR)">
+        <ellipse cx="454" cy="438" rx="17" ry="20" fill="url(#iris)"/>
+        <circle cx="454" cy="439" r="7" fill="#0a0f2a"/>
+        <circle cx="448" cy="432" r="4" fill="#ffffff"/><circle cx="460" cy="446" r="2" fill="#ffffff"/>
+      </g>
+      <path d="M 318 442 C 322 416, 366 408, 380 432" fill="none" stroke="#2a1f3d" stroke-width="5.5" stroke-linecap="round"/>
+      <path d="M 416 444 C 420 412, 476 404, 492 432" fill="none" stroke="#2a1f3d" stroke-width="6" stroke-linecap="round"/>
+      <path d="M 330 452 C 342 458, 360 458, 370 450 M 432 456 C 446 464, 470 462, 482 452" fill="none" stroke="#2a1f3d" stroke-width="2" stroke-linecap="round" opacity="0.7"/>
 
-      <!-- nose (turned), pressed frown -->
-      <path d="M 392 462 L 380 482 L 392 484" fill="none" stroke="#c48f78" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-      <path d="M 356 500 C 372 540, 432 544, 452 496 C 420 508, 388 508, 356 500 Z" fill="#8a2f2a" stroke="#5a1d1a" stroke-width="3" stroke-linejoin="round"/>
-      <path d="M 360 502 C 388 510, 420 510, 449 499 L 446 510 C 420 518, 388 518, 363 511 Z" fill="#ffffff"/>
-      <path d="M 384 528 C 396 534, 414 534, 426 526 C 414 522, 396 522, 384 528 Z" fill="#e66a5f"/>
-      
+      <!-- nose -->
+      <path d="M 396 466 C 392 474, 388 480, 390 484 C 394 486, 400 485, 404 482" fill="none" stroke="#c48f78" stroke-width="2.5" stroke-linecap="round"/>
 
+      <!-- grin -->
+      <path d="M 360 502 C 382 514, 428 514, 452 498 C 448 536, 370 540, 360 502 Z" fill="#7a2630" stroke="#2a1f3d" stroke-width="3.5" stroke-linejoin="round"/>
+      <path d="M 363 504 C 384 515, 426 515, 449 501 L 447 512 C 424 524, 384 524, 366 514 Z" fill="#ffffff"/>
+      <path d="M 388 528 C 400 534, 416 534, 428 526 C 416 520, 400 520, 388 528 Z" fill="#e66a5f"/>
     </g>
 
-    <!-- ===== analysis: landmarks + tracking mesh (same tilt) ===== -->
-    <g transform="translate(400 404) scale(0.84) translate(-400 -430) rotate(-7 400 430)">
-      <g fill="none" stroke="#4fd8ff" stroke-width="1.8" opacity="0.55" stroke-linejoin="round">
-        <path d="M 316 389 L 378 408 L 420 406 L 486 384"/>
-        <path d="M 320 430 L 372 428 M 418 430 L 480 430"/>
-        <path d="M 378 408 L 392 462 L 420 406"/>
-        <path d="M 372 428 L 380 482 L 418 430"/>
-        <path d="M 380 482 L 356 500 L 452 496 L 380 482"/>
-        <path d="M 356 500 L 400 552 L 452 496"/>
-        <path d="M 300 362 L 316 389 L 320 430 L 300 442 L 330 500 L 356 500"/>
-        <path d="M 486 384 L 506 410 L 480 430 L 498 470 L 442 538 L 452 496"/>
-        <path d="M 320 430 L 330 500 M 480 430 L 498 470"/>
+    <!-- analysis: deliberate landmarks + light mesh (same transform) -->
+    <g transform="translate(400 404) scale(0.86) translate(-400 -440) rotate(-5 400 440)">
+      <g fill="none" stroke="#4fd8ff" stroke-width="1.6" opacity="0.5" stroke-linejoin="round">
+        <path d="M 322 406 L 374 406 L 424 404 L 484 402"/>
+        <path d="M 322 440 L 376 434 M 420 442 L 488 434"/>
+        <path d="M 374 406 L 392 482 L 424 404"/>
+        <path d="M 360 502 L 392 482 L 452 498"/>
+        <path d="M 360 502 L 404 552 L 452 498"/>
+        <path d="M 302 400 L 322 440 L 330 500 L 360 502"/>
+        <path d="M 508 400 L 488 434 L 494 478 L 452 498"/>
+        <path d="M 330 500 L 404 552 L 494 478"/>
       </g>
-      <g fill="#d6f6ff">
-        <circle cx="316" cy="389" r="5"/><circle cx="378" cy="408" r="5"/><circle cx="420" cy="406" r="5"/><circle cx="486" cy="384" r="5"/>
-        <circle cx="320" cy="430" r="5"/><circle cx="372" cy="428" r="5"/><circle cx="418" cy="430" r="5"/><circle cx="480" cy="430" r="5"/>
-        <circle cx="392" cy="462" r="4"/><circle cx="380" cy="482" r="5"/>
-        <circle cx="356" cy="500" r="5"/><circle cx="452" cy="496" r="5"/><circle cx="400" cy="552" r="5"/>
-        <circle cx="300" cy="362" r="4"/><circle cx="300" cy="442" r="4"/><circle cx="330" cy="500" r="4"/>
-        <circle cx="506" cy="410" r="4"/><circle cx="498" cy="470" r="4"/><circle cx="442" cy="538" r="4"/>
-        <circle cx="510" cy="440" r="4"/><circle cx="404" cy="270" r="4"/>
+      <g fill="#e2f8ff" stroke="#4fd8ff" stroke-width="2">
+        <circle cx="322" cy="406" r="4.5"/><circle cx="374" cy="406" r="4.5"/><circle cx="424" cy="404" r="4.5"/><circle cx="484" cy="402" r="4.5"/>
+        <circle cx="322" cy="440" r="4.5"/><circle cx="376" cy="434" r="4.5"/><circle cx="420" cy="442" r="4.5"/><circle cx="488" cy="434" r="4.5"/>
+        <circle cx="392" cy="482" r="4.5"/>
+        <circle cx="360" cy="502" r="4.5"/><circle cx="452" cy="498" r="4.5"/><circle cx="404" cy="552" r="4.5"/>
+        <circle cx="330" cy="500" r="4"/><circle cx="494" cy="478" r="4"/><circle cx="302" cy="400" r="4"/><circle cx="508" cy="400" r="4"/>
+        <circle cx="514" cy="442" r="4"/>
       </g>
-      <!-- target lock on the near eye -->
-      <g fill="none" stroke="#d6f6ff" stroke-width="3">
-        <path d="M 408 396 h 14 M 408 396 v 14"/>
-        <path d="M 490 396 h -14 M 490 396 v 14"/>
-        <path d="M 408 480 h 14 M 408 480 v -14"/>
-        <path d="M 490 480 h -14 M 490 480 v -14"/>
+      <g fill="none" stroke="#e2f8ff" stroke-width="3">
+        <path d="M 412 400 h 14 M 412 400 v 14"/>
+        <path d="M 498 400 h -14 M 498 400 v 14"/>
+        <path d="M 412 476 h 14 M 412 476 v -14"/>
+        <path d="M 498 476 h -14 M 498 476 v -14"/>
       </g>
     </g>
 
     <!-- scan band across the eye line -->
-    <rect x="200" y="410" width="400" height="3" fill="#d6f6ff" opacity="0.9" filter="url(#lineglow)"/>
-    <rect x="200" y="413" width="400" height="30" fill="#4fd8ff" opacity="0.08"/>
+    <rect x="200" y="402" width="400" height="3" fill="#e2f8ff" opacity="0.9" filter="url(#lineglow)"/>
+    <rect x="200" y="405" width="400" height="28" fill="#4fd8ff" opacity="0.07"/>
 
     <!-- glass glare -->
     <path d="M 252 262 C 292 222, 352 208, 402 212 C 352 224, 302 248, 272 292 Z" fill="#ffffff" opacity="0.14"/>
@@ -209,8 +219,8 @@
 
   <!-- readout tagged to the face, outside the lens -->
   <g>
-    <path d="M 468 382 L 548 252 L 566 252" fill="none" stroke="#d6f6ff" stroke-width="2.5"/>
-    <circle cx="468" cy="382" r="5" fill="#d6f6ff"/>
+    <path d="M 476 372 L 548 252 L 566 252" fill="none" stroke="#e2f8ff" stroke-width="2.5"/>
+    <circle cx="476" cy="372" r="5" fill="#e2f8ff"/>
     <rect x="566" y="222" width="104" height="58" rx="8" fill="#070b1c" opacity="0.9" stroke="#4fd8ff" stroke-width="2"/>
     <text x="578" y="246" font-family="DejaVu Sans Mono" font-weight="700" font-size="17" fill="#d6f6ff">MATCH</text>
     <text x="578" y="268" font-family="DejaVu Sans Mono" font-weight="700" font-size="17" fill="#4fd8ff">98.7%</text>
