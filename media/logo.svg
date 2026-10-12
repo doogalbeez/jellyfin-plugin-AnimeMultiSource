@@ -93,106 +93,107 @@
   <circle cx="400" cy="400" r="232" fill="#00A4DC" opacity="0.22" filter="url(#glow)"/>
   <circle cx="400" cy="400" r="196" fill="url(#glass)"/>
   <g clip-path="url(#lens)">
-    <g transform="translate(400 392) scale(0.95) translate(-400 -426)">
-      <!-- hair behind, neck, coat -->
-      <use href="#backHair" fill="url(#hair)"/>
-      <path d="M 372 540 L 428 540 L 432 612 L 368 612 Z" fill="#dcb39c"/>
-      <path d="M 340 600 L 400 640 L 460 600 L 470 700 L 330 700 Z" fill="#f4f6fb"/>
-      <path d="M 392 606 L 408 606 L 414 700 L 386 700 Z" fill="#f2a541"/>
-      <path d="M 390 600 L 410 600 L 406 614 L 394 614 Z" fill="#d98a25"/>
-      <path d="M 210 700 L 250 610 L 340 584 L 372 700 Z" fill="#2c3352"/>
-      <path d="M 590 700 L 550 610 L 460 584 L 428 700 Z" fill="#2c3352"/>
-      <path d="M 340 584 L 300 560 L 290 620 L 372 690 Z" fill="#3b4470"/>
-      <path d="M 460 584 L 500 560 L 510 620 L 428 690 Z" fill="#3b4470"/>
-      <!-- face -->
-      <use href="#faceShape" fill="url(#skin)"/>
-      <path d="M 310 352 C 310 440, 330 500, 360 534 C 340 498, 326 440, 328 372 Z" fill="#d6a68e" opacity="0.45"/>
-      <path d="M 310 350 L 490 350 L 490 402 C 440 386, 360 386, 310 402 Z" fill="#b98a7a" opacity="0.28"/>
-      <use href="#cowlick" fill="url(#hair)"/>
-      <use href="#bangs" fill="url(#hair)"/>
-      <path d="M 326 300 C 356 270, 430 262, 470 278" fill="none" stroke="#5f7fe0" stroke-width="6" stroke-linecap="round" opacity="0.55"/>
-      <!-- brows: one raised, confident -->
-      <path d="M 320 392 C 340 372, 372 368, 390 378 L 388 386 C 370 378, 344 382, 322 400 Z" fill="#0c1026"/>
-      <path d="M 480 398 C 460 384, 430 382, 410 386 L 412 394 C 430 390, 458 394, 478 406 Z" fill="#0c1026"/>
-      <!-- eyes: big, bright, with highlights -->
-      <use href="#eyeL" fill="#ffffff"/>
-      <use href="#eyeR" fill="#ffffff"/>
-      <ellipse cx="358" cy="426" rx="20" ry="25" fill="url(#iris)"/>
-      <ellipse cx="442" cy="426" rx="20" ry="25" fill="url(#iris)"/>
-      <ellipse cx="358" cy="428" rx="8" ry="12" fill="#0a0f2a"/>
-      <ellipse cx="442" cy="428" rx="8" ry="12" fill="#0a0f2a"/>
-      <circle cx="350" cy="414" r="6.5" fill="#ffffff"/><circle cx="367" cy="438" r="3" fill="#ffffff"/>
-      <circle cx="434" cy="414" r="6.5" fill="#ffffff"/><circle cx="451" cy="438" r="3" fill="#ffffff"/>
-      <path d="M 312 434 C 316 398, 386 388, 398 416 L 393 422 C 382 400, 326 404, 320 436 Z" fill="#0a0f2a"/>
-      <path d="M 488 434 C 484 398, 414 388, 402 416 L 407 422 C 418 400, 474 404, 480 436 Z" fill="#0a0f2a"/>
-      <path d="M 314 432 L 300 418 L 320 424 Z" fill="#0a0f2a"/>
-      <path d="M 486 432 L 500 418 L 480 424 Z" fill="#0a0f2a"/>
-      <!-- round glasses with the detective glint -->
-      <g fill="none" stroke="#dfe6ff" stroke-width="4.5">
-        <circle cx="356" cy="424" r="40"/>
-        <circle cx="444" cy="424" r="40"/>
-        <path d="M 396 418 C 398 410, 402 410, 404 418"/>
-        <path d="M 316 418 L 300 410"/><path d="M 484 418 L 500 410"/>
+    <!-- ===== original detective, head turned and tilted down, thinking hard ===== -->
+    <g transform="translate(400 404) scale(0.84) translate(-400 -430) rotate(-7 400 430)">
+      <!-- coat, shirt, tie -->
+      <path d="M 210 640 L 262 560 L 352 540 L 400 650 Z" fill="#2c3352"/>
+      <path d="M 600 640 L 548 556 L 452 538 L 410 650 Z" fill="#2c3352"/>
+      <path d="M 352 540 L 400 590 L 452 538 L 440 640 L 364 640 Z" fill="#f4f6fb"/>
+      <path d="M 392 588 L 410 588 L 418 650 L 386 650 Z" fill="#f2a541"/>
+      <path d="M 262 560 L 352 540 L 330 610 Z" fill="#3b4470"/>
+      <path d="M 548 556 L 452 538 L 478 606 Z" fill="#3b4470"/>
+      <!-- neck -->
+      <path d="M 378 520 L 440 520 L 446 586 L 384 586 Z" fill="#d9ad96"/>
+
+      <!-- hair mass behind -->
+      <path d="M 284 408 C 254 340, 262 270, 300 240 C 334 210, 380 198, 420 202 C 472 206, 522 230, 542 274 C 558 312, 552 364, 528 412 L 512 404 C 472 332, 340 328, 296 404 Z" fill="url(#hair)"/>
+      <g fill="url(#hair)">
+        <path d="M 300 246 L 270 210 L 330 226 Z"/>
+        <path d="M 354 214 L 346 172 L 392 204 Z"/>
+        <path d="M 446 204 L 470 168 L 476 214 Z"/>
+        <path d="M 512 232 L 556 214 L 534 258 Z"/>
+        <path d="M 270 300 L 236 290 L 268 336 Z"/>
+        <path d="M 544 318 L 576 312 L 548 352 Z"/>
       </g>
-      <g clip-path="url(#lensL)">
-        <path d="M 318 448 L 370 380 L 392 380 L 340 448 Z" fill="#ffffff" opacity="0.42"/>
-        <path d="M 346 452 L 396 388 L 404 388 L 354 452 Z" fill="#ffffff" opacity="0.28"/>
+      <!-- ear (near side) -->
+      <ellipse cx="510" cy="440" rx="16" ry="26" fill="#e9c4ae"/>
+      <path d="M 512 428 C 504 434, 504 448, 512 454" fill="none" stroke="#c48f78" stroke-width="3" stroke-linecap="round"/>
+      <!-- face, three-quarter view -->
+      <path id="face3q" d="M 300 362 C 294 442, 318 502, 370 540 C 394 556, 422 554, 442 538 C 488 502, 508 452, 506 384 C 482 334, 330 322, 300 362 Z" fill="url(#skin)"/>
+      <path d="M 300 362 C 296 436, 316 494, 352 528 C 330 492, 318 440, 322 382 Z" fill="#d6a68e" opacity="0.45"/>
+      <path d="M 302 356 L 506 380 L 504 420 C 450 402, 360 394, 302 404 Z" fill="#b98a7a" opacity="0.25"/>
+      <!-- spiky bangs -->
+      <path d="M 288 368 L 296 300 C 330 256, 470 252, 518 314 L 512 380 L 494 340 L 482 396 L 458 334 L 440 384 L 420 328 L 398 386 L 380 330 L 360 392 L 344 336 L 322 394 L 314 344 Z" fill="url(#hair)"/>
+      <path d="M 318 300 C 352 272, 424 264, 466 280" fill="none" stroke="#5f7fe0" stroke-width="6" stroke-linecap="round" opacity="0.5"/>
+      <path d="M 410 226 C 424 180, 466 168, 482 190 C 456 190, 438 206, 428 230 Z" fill="url(#hair)"/>
+
+      <!-- furrowed brows + crease -->
+      <path d="M 316 384 C 334 382, 360 390, 380 404 L 376 412 C 358 400, 336 394, 318 394 Z" fill="#0c1026"/>
+      <path d="M 486 378 C 466 378, 440 388, 420 402 L 424 410 C 442 398, 466 390, 484 390 Z" fill="#0c1026"/>
+      <path d="M 396 398 L 398 412 M 404 396 L 404 410" stroke="#b98a7a" stroke-width="2.5" stroke-linecap="round"/>
+
+      <!-- wide, intense eyes with small pupils glancing sideways -->
+      <ellipse cx="346" cy="436" rx="24" ry="28" fill="#ffffff"/>
+      <ellipse cx="448" cy="438" rx="29" ry="32" fill="#ffffff"/>
+      <circle cx="338" cy="438" r="8" fill="#0a0f2a"/>
+      <circle cx="438" cy="440" r="9" fill="#0a0f2a"/>
+      <circle cx="335" cy="434" r="2.5" fill="#ffffff"/>
+      <circle cx="435" cy="436" r="3" fill="#ffffff"/>
+      <path d="M 320 430 C 326 406, 366 404, 372 428" fill="none" stroke="#0a0f2a" stroke-width="6" stroke-linecap="round"/>
+      <path d="M 418 430 C 424 400, 474 400, 480 430" fill="none" stroke="#0a0f2a" stroke-width="6.5" stroke-linecap="round"/>
+      <path d="M 324 452 C 334 464, 356 466, 368 456" fill="none" stroke="#0a0f2a" stroke-width="2.5" stroke-linecap="round" opacity="0.7"/>
+      <path d="M 422 456 C 434 470, 462 472, 476 460" fill="none" stroke="#0a0f2a" stroke-width="2.5" stroke-linecap="round" opacity="0.7"/>
+
+      <!-- nose (turned), pressed frown -->
+      <path d="M 392 462 L 380 482 L 392 484" fill="none" stroke="#c48f78" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M 368 516 C 380 508, 398 508, 414 516" fill="none" stroke="#7e4a40" stroke-width="4" stroke-linecap="round"/>
+      <path d="M 376 524 C 388 528, 400 528, 408 524" fill="none" stroke="#c48f78" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+
+      <!-- fist pressed under the chin -->
+      <path d="M 300 660 C 318 600, 340 566, 362 548 C 384 532, 424 530, 448 544 C 462 554, 458 570, 444 572 C 458 580, 454 598, 438 598 C 450 608, 444 624, 428 622 C 436 634, 428 648, 410 644 L 360 660 Z" fill="#efcab4"/>
+      <g fill="none" stroke="#b98370" stroke-width="3" stroke-linecap="round">
+        <path d="M 400 548 C 418 548, 434 556, 444 572"/>
+        <path d="M 396 566 C 414 568, 428 580, 438 598"/>
+        <path d="M 392 586 C 408 590, 420 604, 428 622"/>
+        <path d="M 356 566 C 372 560, 388 556, 400 548"/>
       </g>
-      <!-- nose, smirk -->
-      <path d="M 401 470 L 396 482" fill="none" stroke="#c48f78" stroke-width="3" stroke-linecap="round"/>
-      <path d="M 380 508 C 392 514, 406 512, 420 500" fill="none" stroke="#9a5f52" stroke-width="3.5" stroke-linecap="round"/>
+      <path d="M 362 548 C 376 540, 392 540, 404 546" fill="none" stroke="#efcab4" stroke-width="10" stroke-linecap="round"/>
     </g>
 
-    <!-- ===== analysis overlay on the right half ===== -->
-    <g clip-path="url(#rightHalf)">
-      <rect x="400" y="180" width="220" height="440" fill="#070b1c" opacity="0.93"/>
-      <rect x="400" y="180" width="220" height="440" fill="url(#grid)" opacity="0.2"/>
-      <g transform="translate(400 392) scale(0.95) translate(-400 -426)">
-        <g fill="none" stroke="#4fd8ff" stroke-width="2.5" filter="url(#lineglow)">
-          <use href="#backHair" stroke-opacity="0.5"/>
-          <use href="#faceShape"/>
-          <use href="#bangs" stroke-opacity="0.7"/>
-          <use href="#cowlick" stroke-opacity="0.7"/>
-          <use href="#eyeR"/>
-          <ellipse cx="442" cy="426" rx="20" ry="25"/>
-          <circle cx="444" cy="424" r="40" stroke-opacity="0.8"/>
-          <path d="M 480 398 C 460 384, 430 382, 410 386 L 412 394 C 430 390, 458 394, 478 406 Z"/>
-          <path d="M 401 470 L 396 482"/>
-          <path d="M 380 508 C 392 514, 406 512, 420 500"/>
-          <path d="M 460 584 L 500 560 L 510 620 L 428 690"/>
-          <path d="M 590 700 L 550 610 L 460 584"/>
-        </g>
-        <g fill="none" stroke="#4fd8ff" stroke-width="1.5" opacity="0.45">
-          <path d="M 400 370 C 440 368, 472 372, 490 380"/>
-          <path d="M 400 462 C 440 462, 472 456, 488 446"/>
-          <path d="M 400 496 C 432 496, 462 488, 480 476"/>
-          <path d="M 400 530 C 422 530, 446 522, 460 510"/>
-          <path d="M 440 352 C 448 420, 446 500, 428 548"/>
-          <path d="M 472 356 C 480 420, 476 480, 460 514"/>
-        </g>
-        <g fill="#d6f6ff">
-          <circle cx="406" cy="420" r="5"/><circle cx="482" cy="432" r="5"/><circle cx="442" cy="426" r="5"/>
-          <circle cx="396" cy="482" r="5"/><circle cx="420" cy="500" r="5"/><circle cx="400" cy="560" r="5"/>
-          <circle cx="480" cy="476" r="5"/><circle cx="490" cy="352" r="5"/><circle cx="460" cy="510" r="5"/>
-          <circle cx="478" cy="194" r="5"/>
-        </g>
-        <g fill="none" stroke="#d6f6ff" stroke-width="3">
-          <path d="M 400 380 h 14 M 400 380 v 14"/>
-          <path d="M 492 380 h -14 M 492 380 v 14"/>
-          <path d="M 400 470 h 14 M 400 470 v -14"/>
-          <path d="M 492 470 h -14 M 492 470 v -14"/>
-        </g>
+    <!-- ===== analysis: landmarks + tracking mesh (same tilt) ===== -->
+    <g transform="translate(400 404) scale(0.84) translate(-400 -430) rotate(-7 400 430)">
+      <g fill="none" stroke="#4fd8ff" stroke-width="1.8" opacity="0.55" stroke-linejoin="round">
+        <path d="M 316 389 L 378 408 L 420 406 L 486 384"/>
+        <path d="M 320 430 L 372 428 M 418 430 L 480 430"/>
+        <path d="M 378 408 L 392 462 L 420 406"/>
+        <path d="M 372 428 L 380 482 L 418 430"/>
+        <path d="M 380 482 L 368 516 L 414 516 L 380 482"/>
+        <path d="M 368 516 L 400 552 L 414 516"/>
+        <path d="M 300 362 L 316 389 L 320 430 L 300 442 L 330 500 L 368 516"/>
+        <path d="M 486 384 L 506 410 L 480 430 L 498 470 L 442 538 L 414 516"/>
+        <path d="M 320 430 L 330 500 M 480 430 L 498 470"/>
       </g>
-      <text x="492" y="404" font-family="DejaVu Sans Mono" font-weight="700" font-size="15" fill="#d6f6ff">MATCH</text>
-      <text x="492" y="422" font-family="DejaVu Sans Mono" font-weight="700" font-size="15" fill="#4fd8ff">98.7%</text>
-      <rect x="492" y="476" width="62" height="5" fill="#4fd8ff" opacity="0.8"/>
-      <rect x="492" y="488" width="44" height="5" fill="#4fd8ff" opacity="0.5"/>
-      <rect x="492" y="500" width="54" height="5" fill="#4fd8ff" opacity="0.3"/>
+      <g fill="#d6f6ff">
+        <circle cx="316" cy="389" r="5"/><circle cx="378" cy="408" r="5"/><circle cx="420" cy="406" r="5"/><circle cx="486" cy="384" r="5"/>
+        <circle cx="320" cy="430" r="5"/><circle cx="372" cy="428" r="5"/><circle cx="418" cy="430" r="5"/><circle cx="480" cy="430" r="5"/>
+        <circle cx="392" cy="462" r="4"/><circle cx="380" cy="482" r="5"/>
+        <circle cx="368" cy="516" r="5"/><circle cx="414" cy="516" r="5"/><circle cx="400" cy="552" r="5"/>
+        <circle cx="300" cy="362" r="4"/><circle cx="300" cy="442" r="4"/><circle cx="330" cy="500" r="4"/>
+        <circle cx="506" cy="410" r="4"/><circle cx="498" cy="470" r="4"/><circle cx="442" cy="538" r="4"/>
+        <circle cx="510" cy="440" r="4"/><circle cx="482" cy="190" r="4"/>
+      </g>
+      <!-- target lock on the near eye -->
+      <g fill="none" stroke="#d6f6ff" stroke-width="3">
+        <path d="M 408 396 h 14 M 408 396 v 14"/>
+        <path d="M 490 396 h -14 M 490 396 v 14"/>
+        <path d="M 408 480 h 14 M 408 480 v -14"/>
+        <path d="M 490 480 h -14 M 490 480 v -14"/>
+      </g>
     </g>
 
-    <!-- scan line splitting the face -->
-    <rect x="397" y="190" width="6" height="420" fill="#d6f6ff" filter="url(#lineglow)"/>
-    <rect x="403" y="190" width="40" height="420" fill="#4fd8ff" opacity="0.08"/>
+    <!-- scan band across the eye line -->
+    <rect x="200" y="410" width="400" height="3" fill="#d6f6ff" opacity="0.9" filter="url(#lineglow)"/>
+    <rect x="200" y="413" width="400" height="30" fill="#4fd8ff" opacity="0.08"/>
 
     <!-- glass glare -->
     <path d="M 252 262 C 292 222, 352 208, 402 212 C 352 224, 302 248, 272 292 Z" fill="#ffffff" opacity="0.14"/>
@@ -200,6 +201,15 @@
   <circle cx="400" cy="400" r="196" fill="none" stroke="url(#ring)" stroke-width="30"/>
   <circle cx="400" cy="400" r="212" fill="none" stroke="#ffffff" stroke-opacity="0.08" stroke-width="2"/>
 
+
+  <!-- readout tagged to the face, outside the lens -->
+  <g>
+    <path d="M 468 382 L 548 252 L 566 252" fill="none" stroke="#d6f6ff" stroke-width="2.5"/>
+    <circle cx="468" cy="382" r="5" fill="#d6f6ff"/>
+    <rect x="566" y="222" width="104" height="58" rx="8" fill="#070b1c" opacity="0.9" stroke="#4fd8ff" stroke-width="2"/>
+    <text x="578" y="246" font-family="DejaVu Sans Mono" font-weight="700" font-size="17" fill="#d6f6ff">MATCH</text>
+    <text x="578" y="268" font-family="DejaVu Sans Mono" font-weight="700" font-size="17" fill="#4fd8ff">98.7%</text>
+  </g>
   <!-- wordmark -->
   <text x="890" y="500" text-anchor="middle" font-family="Fira Sans" font-weight="900" font-size="230" letter-spacing="-4" fill="url(#word)">AMS</text>
   <rect x="680" y="530" width="420" height="6" rx="3" fill="url(#ring)"/>
