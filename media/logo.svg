@@ -1,116 +1,106 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" width="1200" height="900">
   <defs>
-    <radialGradient id="bg" cx="50%" cy="45%" r="60%">
-      <stop offset="0%" stop-color="#252a5c"/>
-      <stop offset="70%" stop-color="#14173a"/>
-      <stop offset="100%" stop-color="#0b0d24"/>
-    </radialGradient>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0d1224"/>
+      <stop offset="60%" stop-color="#141433"/>
+      <stop offset="100%" stop-color="#1d1040"/>
+    </linearGradient>
+    <pattern id="dots" width="36" height="36" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#8fa3ff"/>
+    </pattern>
     <linearGradient id="ring" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#AA5CC3"/>
-      <stop offset="100%" stop-color="#00A4DC"/>
+      <stop offset="0%" stop-color="#00A4DC"/>
+      <stop offset="100%" stop-color="#AA5CC3"/>
     </linearGradient>
-    <radialGradient id="iris" cx="50%" cy="40%" r="60%">
-      <stop offset="0%" stop-color="#7fe3ff"/>
-      <stop offset="35%" stop-color="#00A4DC"/>
-      <stop offset="75%" stop-color="#7a4fc9"/>
-      <stop offset="100%" stop-color="#3a1f6e"/>
+    <radialGradient id="glass" cx="45%" cy="40%" r="70%">
+      <stop offset="0%" stop-color="#1b2a55"/>
+      <stop offset="100%" stop-color="#080d1f"/>
     </radialGradient>
-    <linearGradient id="irisShade" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#1a0f3a" stop-opacity="0.85"/>
-      <stop offset="45%" stop-color="#1a0f3a" stop-opacity="0"/>
+    <radialGradient id="iris" cx="50%" cy="35%" r="70%">
+      <stop offset="0%" stop-color="#9ff0ff"/>
+      <stop offset="40%" stop-color="#00A4DC"/>
+      <stop offset="100%" stop-color="#2b1b6b"/>
+    </radialGradient>
+    <linearGradient id="word" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#b9c7ff"/>
     </linearGradient>
-    <linearGradient id="sclera" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#dfe6ff"/>
-      <stop offset="100%" stop-color="#ffffff"/>
+    <linearGradient id="handle" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#2a2f52"/>
+      <stop offset="50%" stop-color="#4a5285"/>
+      <stop offset="100%" stop-color="#2a2f52"/>
     </linearGradient>
+    <pattern id="houndstooth" width="24" height="24" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="24" height="24" fill="#3b2a6a"/>
+      <path d="M0 0 h12 v12 h-12 Z M12 12 h12 v12 h-12 Z" fill="#241a45"/>
+    </pattern>
     <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-      <feGaussianBlur stdDeviation="10" result="b"/>
-      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      <feGaussianBlur stdDeviation="14"/>
     </filter>
-    <filter id="softglow" x="-50%" y="-50%" width="200%" height="200%">
-      <feGaussianBlur stdDeviation="22"/>
-    </filter>
-    <linearGradient id="lidShadow" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#160b33" stop-opacity="0.35"/>
-      <stop offset="30%" stop-color="#160b33" stop-opacity="0"/>
-    </linearGradient>
-    <clipPath id="eyeClip2">
-      <path d="M 290 540 C 330 430, 460 395, 560 400 C 660 405, 730 440, 770 500 C 730 590, 640 642, 520 642 C 420 642, 340 612, 290 540 Z"/>
-    </clipPath>
-    <clipPath id="eyeClip">
-      <path d="M262 520 C 340 392, 684 392, 762 520 C 684 640, 340 640, 262 520 Z"/>
-    </clipPath>
-    <!-- data streams fade toward the eye -->
-    <linearGradient id="s1" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#00A4DC" stop-opacity="0.15"/><stop offset="100%" stop-color="#00A4DC"/></linearGradient>
-    <linearGradient id="s2" x1="1" y1="0" x2="0" y2="0"><stop offset="0%" stop-color="#AA5CC3" stop-opacity="0.15"/><stop offset="100%" stop-color="#AA5CC3"/></linearGradient>
-    <linearGradient id="s3" x1="0" y1="1" x2="0" y2="0"><stop offset="0%" stop-color="#ff7eb6" stop-opacity="0.45"/><stop offset="100%" stop-color="#ff7eb6"/></linearGradient>
-    <linearGradient id="s4" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ffc861" stop-opacity="0.15"/><stop offset="100%" stop-color="#ffc861"/></linearGradient>
-    <linearGradient id="s5" x1="1" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#5ff2d0" stop-opacity="0.15"/><stop offset="100%" stop-color="#5ff2d0"/></linearGradient>
+    <clipPath id="lens"><circle cx="400" cy="400" r="196"/></clipPath>
   </defs>
 
-  <!-- badge -->
-  <circle cx="512" cy="512" r="490" fill="url(#bg)"/>
-  <circle cx="512" cy="512" r="474" fill="none" stroke="url(#ring)" stroke-width="10" opacity="0.9"/>
-  <circle cx="512" cy="512" r="452" fill="none" stroke="#ffffff" stroke-opacity="0.06" stroke-width="2"/>
+  <!-- background -->
+  <rect width="1200" height="900" fill="url(#bg)"/>
+  <rect width="1200" height="900" fill="url(#dots)" opacity="0.07"/>
+  <path d="M 0 900 L 0 640 L 760 0 L 1200 0 L 1200 120 L 300 900 Z" fill="#ffffff" opacity="0.025"/>
 
-  <!-- converging data streams: separate sources flowing into one -->
-  <g fill="none" stroke-width="9" stroke-linecap="round">
-    <path d="M118 330 C 230 330, 260 440, 312 500" stroke="url(#s1)"/>
-    <path d="M906 330 C 820 330, 790 420, 752 470" stroke="url(#s2)"/>
-    <path d="M512 948 C 512 820, 516 720, 520 650" stroke="url(#s3)"/>
-    <path d="M190 780 C 260 700, 300 640, 352 590" stroke="url(#s4)"/>
-    <path d="M834 780 C 774 700, 744 640, 712 600" stroke="url(#s5)"/>
+  <!-- data lines feeding the lens (separate sources) -->
+  <g fill="none" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity="0.9">
+    <path d="M 0 180 H 120 L 180 240 H 272" stroke="#00A4DC"/>
+    <path d="M 0 300 H 150 L 190 330 H 208" stroke="#AA5CC3"/>
+    <path d="M 0 470 H 140 L 175 445 H 206" stroke="#5ff2d0"/>
   </g>
   <g>
-    <circle cx="118" cy="330" r="16" fill="#00A4DC"/><circle cx="216" cy="350" r="9" fill="#00A4DC" opacity="0.7"/>
-    <circle cx="906" cy="330" r="16" fill="#AA5CC3"/><circle cx="808" cy="350" r="9" fill="#AA5CC3" opacity="0.7"/>
-    <circle cx="512" cy="948" r="16" fill="#ff7eb6"/><circle cx="512" cy="840" r="9" fill="#ff7eb6" opacity="0.7"/>
-    <circle cx="190" cy="780" r="16" fill="#ffc861"/><circle cx="252" cy="712" r="9" fill="#ffc861" opacity="0.7"/>
-    <circle cx="834" cy="780" r="16" fill="#5ff2d0"/><circle cx="772" cy="712" r="9" fill="#5ff2d0" opacity="0.7"/>
+    <circle cx="120" cy="180" r="9" fill="#00A4DC"/>
+    <circle cx="150" cy="300" r="9" fill="#AA5CC3"/>
+    <circle cx="140" cy="470" r="9" fill="#5ff2d0"/>
   </g>
 
-  <!-- glow behind the eye -->
-  <ellipse cx="530" cy="520" rx="270" ry="160" fill="#00A4DC" opacity="0.35" filter="url(#softglow)"/>
-
-  <!-- anime eye: sclera -->
-  <path d="M 290 540 C 330 430, 460 395, 560 400 C 660 405, 730 440, 770 500 C 730 590, 640 642, 520 642 C 420 642, 340 612, 290 540 Z" fill="url(#sclera)"/>
-  <g clip-path="url(#eyeClip2)">
-    <!-- tall oval iris -->
-    <ellipse cx="535" cy="525" rx="120" ry="146" fill="url(#iris)"/>
-    <ellipse cx="535" cy="525" rx="120" ry="146" fill="url(#irisShade)"/>
-    <!-- scan ring: identifying -->
-    <ellipse cx="535" cy="530" rx="90" ry="110" fill="none" stroke="#ffffff" stroke-opacity="0.6" stroke-width="5" stroke-dasharray="18 13"/>
-    <!-- play-button pupil -->
-    <path d="M 505 470 L 600 530 L 505 590 Z" fill="#160b33" stroke="#160b33" stroke-width="16" stroke-linejoin="round"/>
-    <!-- anime highlights -->
-    <ellipse cx="482" cy="468" rx="38" ry="26" fill="#ffffff" transform="rotate(-30 482 468)"/>
-    <circle cx="596" cy="600" r="13" fill="#ffffff" opacity="0.95"/>
-    <!-- lid shadow on the eye -->
-    <rect x="280" y="390" width="500" height="260" fill="url(#lidShadow)"/>
-  </g>
-  <!-- heavy upper lash with winged flick -->
-  <path d="M 266 556 C 296 410, 452 358, 570 364 C 690 370, 772 416, 838 446 L 784 488 C 730 440, 660 405, 560 400 C 460 395, 330 430, 290 540 Z" fill="#160b33"/>
-  <!-- lash spikes -->
-  <g fill="#160b33">
-    <path d="M 700 388 L 742 350 L 722 400 Z"/>
-    <path d="M 752 414 L 800 388 L 770 430 Z"/>
-  </g>
-  <!-- lower lid -->
-  <path d="M 420 640 C 520 652, 640 636, 726 584" fill="none" stroke="#160b33" stroke-width="9" stroke-linecap="round" opacity="0.9"/>
-  <path d="M 726 584 L 752 596" stroke="#160b33" stroke-width="7" stroke-linecap="round"/>
-
-  <!-- sparkles -->
-  <g fill="#ffffff" filter="url(#glow)">
-    <path d="M 812 268 l 10 28 l 28 10 l -28 10 l -10 28 l -10 -28 l -28 -10 l 28 -10 Z"/>
-    <path d="M 250 280 l 7 18 l 18 7 l -18 7 l -7 18 l -7 -18 l -18 -7 l 18 -7 Z" opacity="0.85"/>
-    <path d="M 660 760 l 5 13 l 13 5 l -13 5 l -5 13 l -5 -13 l -13 -5 l 13 -5 Z" opacity="0.7"/>
+  <!-- magnifying glass: handle (houndstooth band - a deerstalker nod) -->
+  <g transform="rotate(45 400 400)">
+    <rect x="372" y="620" width="56" height="250" rx="22" fill="url(#handle)"/>
+    <rect x="372" y="680" width="56" height="120" fill="url(#houndstooth)"/>
+    <rect x="364" y="596" width="72" height="40" rx="10" fill="#4a5285"/>
   </g>
 
-  <!-- sakura petals -->
-  <g fill="#ffa9cf">
-    <path d="M 0 -26 L 8 -36 C 22 -34 24 -12 16 6 C 10 18 4 28 0 36 C -4 28 -10 18 -16 6 C -24 -12 -22 -34 -8 -36 Z" transform="translate(700 206) rotate(35) scale(1.25)" opacity="0.95"/>
-    <path d="M 0 -26 L 8 -36 C 22 -34 24 -12 16 6 C 10 18 4 28 0 36 C -4 28 -10 18 -16 6 C -24 -12 -22 -34 -8 -36 Z" transform="translate(338 812) rotate(-40) scale(1.0)" opacity="0.8"/>
-    <path d="M 0 -26 L 8 -36 C 22 -34 24 -12 16 6 C 10 18 4 28 0 36 C -4 28 -10 18 -16 6 C -24 -12 -22 -34 -8 -36 Z" transform="translate(860 610) rotate(70) scale(0.75)" opacity="0.75"/>
-    <path d="M 0 -26 L 8 -36 C 22 -34 24 -12 16 6 C 10 18 4 28 0 36 C -4 28 -10 18 -16 6 C -24 -12 -22 -34 -8 -36 Z" transform="translate(176 560) rotate(-15) scale(0.6)" opacity="0.6"/>
+  <!-- lens -->
+  <circle cx="400" cy="400" r="232" fill="#00A4DC" opacity="0.25" filter="url(#glow)"/>
+  <circle cx="400" cy="400" r="196" fill="url(#glass)"/>
+  <g clip-path="url(#lens)">
+    <!-- reticle -->
+    <g stroke="#7fe3ff" stroke-opacity="0.35" stroke-width="3">
+      <line x1="400" y1="210" x2="400" y2="262"/><line x1="400" y1="538" x2="400" y2="590"/>
+      <line x1="210" y1="400" x2="262" y2="400"/><line x1="538" y1="400" x2="590" y2="400"/>
+    </g>
+    <circle cx="400" cy="400" r="150" fill="none" stroke="#7fe3ff" stroke-opacity="0.18" stroke-width="2" stroke-dasharray="6 10"/>
+
+    <!-- sharp, half-lidded anime eye: focused, not cute -->
+    <g transform="rotate(-8 400 410)">
+      <path d="M 250 420 C 300 360, 420 336, 556 384 C 500 452, 380 470, 250 420 Z" fill="#e9eeff"/>
+      <clipPath id="eye"><path d="M 250 420 C 300 360, 420 336, 556 384 C 500 452, 380 470, 250 420 Z"/></clipPath>
+      <g clip-path="url(#eye)">
+        <ellipse cx="420" cy="410" rx="62" ry="78" fill="url(#iris)"/>
+        <ellipse cx="420" cy="414" rx="20" ry="34" fill="#0a0820"/>
+        <path d="M 250 330 L 560 330 L 560 392 C 470 368, 360 372, 250 410 Z" fill="#0a0820" opacity="0.35"/>
+        <path d="M 392 372 L 410 362 L 404 392 L 386 400 Z" fill="#ffffff"/>
+        <circle cx="448" cy="440" r="5" fill="#ffffff" opacity="0.9"/>
+      </g>
+      <!-- heavy angular upper lash line with a sharp flick -->
+      <path d="M 236 428 C 292 350, 430 322, 586 368 L 556 386 C 420 340, 300 362, 250 420 Z" fill="#0a0820"/>
+      <path d="M 520 352 L 600 338 L 556 386 Z" fill="#0a0820"/>
+      <path d="M 300 450 C 380 466, 470 452, 528 418" fill="none" stroke="#0a0820" stroke-width="5" stroke-linecap="round"/>
+      <!-- sharp brow -->
+      <path d="M 268 336 C 340 300, 440 282, 532 286 L 540 296 C 450 300, 360 318, 292 346 Z" fill="#0a0820" opacity="0.95"/>
+    </g>
+    <!-- glass glare -->
+    <path d="M 260 260 C 300 220, 360 206, 410 210 C 360 222, 310 246, 280 290 Z" fill="#ffffff" opacity="0.22"/>
   </g>
+  <circle cx="400" cy="400" r="196" fill="none" stroke="url(#ring)" stroke-width="30"/>
+  <circle cx="400" cy="400" r="212" fill="none" stroke="#ffffff" stroke-opacity="0.08" stroke-width="2"/>
+
+  <!-- wordmark -->
+  <text x="890" y="500" text-anchor="middle" font-family="Fira Sans" font-weight="900" font-size="230" letter-spacing="-4" fill="url(#word)">AMS</text>
+  <rect x="680" y="530" width="420" height="6" rx="3" fill="url(#ring)"/>
+  <text x="890" y="600" text-anchor="middle" font-family="Fira Sans" font-weight="600" font-size="38" letter-spacing="7" fill="#9fb0e6">ANIME MULTI SOURCE</text>
 </svg>
