@@ -1,293 +1,301 @@
 [
-  {
-    "guid": "8eca6f17-71fe-4309-a670-3cae083f22bd",
-    "name": "Anime Multi Source",
-    "overview": "Anime metadata, tags, art, and people pulled from multiple sources with rate limiting and 5-day persistent caches.",
-    "description": "Multi-source anime metadata (AniList, AniDB, MAL/Jikan, TVDB, Fanart.tv, Fribb, .plexmatch) with cautious rate limits and persistent caching.",
-    "owner": "webbster64",
-    "category": "Anime",
-    "imageUrl": "https://raw.githubusercontent.com/webbster64/jellyfin-plugin-AnimeMultiSource/main/media/logo.png",
-    "versions": [
-      {
-        "version": "1.0.6.14",
-        "changelog": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/tag/v1.0.6.14",
-        "targetAbi": "10.11.3.0",
-        "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.6.14/AnimeMultiSource_v1.0.6.14.zip",
-        "checksum": "B3DB841CB9FCE61209E8B5693AAA3440",
-        "timestamp": "2026-08-10T10:59:12Z"
-      },
-      {
-        "version": "1.0.6.5",
-        "changelog": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/tag/v1.0.6.5",
-        "targetAbi": "10.11.3.0",
-        "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.6.5/AnimeMultiSource_v1.0.6.5.zip",
-        "checksum": "39F97F3DB47E82DBA2B97AF916A1695F",
-        "timestamp": "2026-08-10T06:39:26Z"
-      },
-      {
-        "version": "1.0.6.4",
-        "changelog": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/tag/v1.0.6.4",
-        "targetAbi": "10.11.3.0",
-        "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.6.4/AnimeMultiSource_v1.0.6.4.zip",
-        "checksum": "6B8F12E667EF50E2B578C16B5EBF8510",
-        "timestamp": "2026-08-10T05:50:18Z"
-      },
-      {
-        "version": "1.0.6.1",
-        "changelog": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/tag/v1.0.6.1",
-        "targetAbi": "10.11.3.0",
-        "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.6.1/AnimeMultiSource_v1.0.6.1.zip",
-        "checksum": "C0B553139CD358E12CD00D1FB2702347",
-        "timestamp": "2026-08-09T14:24:42Z"
-      },
-      {
-        "version": "1.0.5.0",
-        "changelog": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/tag/v1.0.5.0",
-        "targetAbi": "10.11.3.0",
-        "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.5.0/AnimeMultiSource_v1.0.5.0.zip",
-        "checksum": "DF733F66BA045B157EBCB2661E9ADA04",
-        "timestamp": "2026-06-16T11:00:00Z"
-      },
-      {
-        "version": "1.0.4.9",
-        "changelog": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/tag/v1.0.4.9",
-        "targetAbi": "10.11.3.0",
-        "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.4.9/AnimeMultiSource_v1.0.4.9.zip",
-        "checksum": "67BAB01C5266844D9018A99C6C392C88",
-        "timestamp": "2026-06-16T11:00:00Z"
-      },
-      {
-        "version": "1.0.4.8",
-        "changelog": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/tag/v1.0.4.8",
-        "targetAbi": "10.11.3.0",
-        "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.4.8/AnimeMultiSource_v1.0.4.8.zip",
-        "checksum": "9DC9EF10D020CFF0A24DCE53C42D6CBF",
-        "timestamp": "2026-01-27T12:11:26Z"
-      },
-      {
-        "version": "1.0.4.7",
-        "changelog": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/tag/v1.0.4.7",
-        "targetAbi": "10.11.3.0",
-        "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.4.7/AnimeMultiSource_v1.0.4.7.zip",
-        "checksum": "3A630CDCDFE8E9CE7287E7507E2A32D6",
-        "timestamp": "2025-12-30T11:30:00Z"
-      },
-      {
-        "version": "1.0.4.6",
-        "changelog": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/tag/v1.0.4.6",
-        "targetAbi": "10.11.3.0",
-        "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.4.6/AnimeMultiSource_v1.0.4.6.zip",
-        "checksum": "AB1B4AB8EDB195D444DF32F520AFA4DF",
-        "timestamp": "2025-12-30T10:50:00Z"
-      },
-      {
-        "version": "1.0.4.5",
-        "changelog": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/tag/v1.0.4.5",
-        "targetAbi": "10.11.3.0",
-        "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.4.5/AnimeMultiSource_v1.0.4.5.zip",
-        "checksum": "BD516E83D4E0B1E6E22B3BCCAC86F5D7",
-        "timestamp": "2025-12-29T09:10:00Z"
-      },
-      {
-        "version": "1.0.4.4",
-        "changelog": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/tag/v1.0.4.4",
-        "targetAbi": "10.11.3.0",
-        "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.4.4/AnimeMultiSource_v1.0.4.4.zip",
-        "checksum": "613F182CB0CCDB95D9BCD033AEAC8F77",
-        "timestamp": "2025-12-28T14:20:00Z"
-      },
-      {
-        "version": "1.0.4.3",
-        "changelog": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/tag/v1.0.4.3",
-        "targetAbi": "10.11.3.0",
-        "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.4.3/AnimeMultiSource_v1.0.4.3.zip",
-        "checksum": "6B9AE3F5C7721DD5DCFAE4C5E9DC6D56",
-        "timestamp": "2025-12-28T11:00:00Z"
-      },
-      {
-        "version": "1.0.4.2",
-        "changelog": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/tag/v1.0.4.2",
-        "targetAbi": "10.11.3.0",
-        "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.4.2/AnimeMultiSource_v1.0.4.2.zip",
-        "checksum": "2348876E19E2389907D73FFAF072BF0F",
-        "timestamp": "2025-12-27T13:35:00Z"
-      },
-      {
-        "version": "1.0.4.1",
-        "changelog": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/tag/v1.0.4.1",
-        "targetAbi": "10.11.3.0",
-        "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.4.1/AnimeMultiSource_v1.0.4.1.zip",
-        "checksum": "C62781653B2056A1FF7543598E93B2E2",
-        "timestamp": "2025-12-27T13:15:00Z"
-      },
-      {
-        "version": "1.0.4.0",
-        "changelog": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/tag/v1.0.4.0",
-        "targetAbi": "10.11.3.0",
-        "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.4.0/AnimeMultiSource_v1.0.4.0.zip",
-        "checksum": "974260F57D18F8AF25EBEE8C2B23A561",
-        "timestamp": "2025-12-27T13:05:00Z"
-      },
-      {
-        "version": "1.0.3.9",
-        "changelog": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/tag/v1.0.3.9",
-        "targetAbi": "10.11.3.0",
-        "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.3.9/AnimeMultiSource_v1.0.3.9.zip",
-        "checksum": "EC255E03730CE36B0FC1C888688B3B91",
-        "timestamp": "2025-12-27T11:35:00Z"
-      },
-      {
-        "version": "1.0.3.8",
-        "changelog": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/tag/v1.0.3.8",
-        "targetAbi": "10.11.3.0",
-        "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.3.8/AnimeMultiSource_v1.0.3.8.zip",
-        "checksum": "F69B1C9BF27C1303BABAEA059A51B1E4",
-        "timestamp": "2025-12-27T10:40:00Z"
-      },
-      {
-        "version": "1.0.3.7",
-        "changelog": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/tag/v1.0.3.7",
-        "targetAbi": "10.11.3.0",
-        "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.3.7/AnimeMultiSource_v1.0.3.7.zip",
-        "checksum": "6CD9E995C5E3C0A421840C6275E50982",
-        "timestamp": "2025-12-27T08:51:10Z"
-      },
-      {
-        "version": "1.0.3.6",
-        "changelog": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/tag/v1.0.3.6",
-        "targetAbi": "10.11.3.0",
-        "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.3.6/AnimeMultiSource_v1.0.3.6.zip",
-        "checksum": "07C8F5374BD19A045220167126BA5226",
-        "timestamp": "2025-12-27T08:40:44Z"
-      },
-      {
-        "version": "1.0.3.5",
-        "changelog": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/tag/v1.0.3.5",
-        "targetAbi": "10.11.3.0",
-        "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.3.5/AnimeMultiSource_v1.0.3.5.zip",
-        "checksum": "C3806CD2A926B76E068F6299932D1948",
-        "timestamp": "2025-12-22T13:07:53Z"
-      },
-      {
-        "version": "1.0.3.4",
-        "changelog": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/tag/v1.0.3.4",
-        "targetAbi": "10.11.3.0",
-        "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.3.4/AnimeMultiSource_v1.0.3.4.zip",
-        "checksum": "09892F4A5650BD5105D217E1520D5AC0",
-        "timestamp": "2025-12-22T12:48:00Z"
-      },
-      {
-        "version": "1.0.3.3",
-        "changelog": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/tag/v1.0.3.3",
-        "targetAbi": "10.11.3.0",
-        "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.3.3/AnimeMultiSource_v1.0.3.3.zip",
-        "checksum": "FDEA22FBEC4CB3E6FC32DB949C860AF9",
-        "timestamp": "2025-12-22T12:07:27Z"
-      },
-      {
-        "version": "1.0.3.2",
-        "changelog": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/tag/v1.0.3.2",
-        "targetAbi": "10.11.3.0",
-        "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.3.2/AnimeMultiSource_v1.0.3.2.zip",
-        "checksum": "8162D9EA0BF80581324EB58CF7E1064F",
-        "timestamp": "2025-12-22T10:55:49Z"
-      },
-      {
-        "version": "1.0.3.1",
-        "changelog": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/tag/v1.0.3.1",
-        "targetAbi": "10.11.3.0",
-        "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.3.1/AnimeMultiSource_v1.0.3.1.zip",
-        "checksum": "2CAA68D09A7561C1B39FFE45140E9E70",
-        "timestamp": "2025-12-22T10:11:01Z"
-      },
-      {
-        "version": "1.0.3.0",
-        "changelog": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/tag/v1.0.3.0",
-        "targetAbi": "10.11.3.0",
-        "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.3.0/AnimeMultiSource_v1.0.3.0.zip",
-        "checksum": "7EF39EC4427CC002715997E54F21DB8D",
-        "timestamp": "2025-12-22T09:51:10Z"
-      },
-      {
-        "version": "1.0.2.2",
-        "changelog": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/tag/v1.0.2.2",
-        "targetAbi": "10.11.3.0",
-        "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.2.2/AnimeMultiSource_v1.0.2.2.zip",
-        "checksum": "CF0A19D33AC830584E338A6724895979",
-        "timestamp": "2025-12-21T12:52:18Z"
-      },
-      {
-        "version": "1.0.2.1",
-        "changelog": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/tag/v1.0.2.1",
-        "targetAbi": "10.11.3.0",
-        "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.2.1/AnimeMultiSource_v1.0.2.1.zip",
-        "checksum": "F5D6A8B009DA5D3E4B566CB5FAB028C0",
-        "timestamp": "2025-12-18T13:51:20Z"
-      },
-      {
-        "version": "1.0.2.0",
-        "changelog": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/tag/v1.0.2.0",
-        "targetAbi": "10.11.3.0",
-        "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.2.0/AnimeMultiSource_v1.0.2.0.zip",
-        "checksum": "90AF7FA8DCD91CC5AACE7CAAE3F69EFA",
-        "timestamp": "2025-12-18T12:35:36Z"
-      },
-      {
-        "version": "1.0.1.6",
-        "changelog": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/tag/v1.0.1.6",
-        "targetAbi": "10.11.3.0",
-        "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.1.6/AnimeMultiSource_v1.0.1.6.zip",
-        "checksum": "A88C96FB795F467D3C80A6F73088AF2A",
-        "timestamp": "2025-12-18T12:11:10Z"
-      },
-      {
-        "version": "1.0.1.5",
-        "changelog": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/tag/v1.0.1.5",
-        "targetAbi": "10.11.3.0",
-        "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.1.5/AnimeMultiSource_v1.0.1.5.zip",
-        "checksum": "142C43AA5A1ED20A6B12278B2F7212EB",
-        "timestamp": "2025-12-18T11:48:54Z"
-      },
-      {
-        "version": "1.0.1.4",
-        "changelog": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/tag/v1.0.1.4",
-        "targetAbi": "10.11.3.0",
-        "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.1.4/AnimeMultiSource_v1.0.1.4.zip",
-        "checksum": "F7AF5B3FC468720C9C75B4CF979CE487",
-        "timestamp": "2025-12-18T10:35:20Z"
-      },
-      {
-        "version": "1.0.1.3",
-        "changelog": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/tag/v1.0.1.3",
-        "targetAbi": "10.11.3.0",
-        "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.1.3/AnimeMultiSource_v1.0.1.3.zip",
-        "checksum": "9F4DA139054BFB3B57AC99E250D9C3F8",
-        "timestamp": "2025-12-18T10:13:33Z"
-      },
-      {
-        "version": "1.0.1.1",
-        "changelog": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/tag/v1.0.1.1",
-        "targetAbi": "10.11.2.0",
-        "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.1.1/AnimeMultiSource_v1.0.1.1.zip",
-        "checksum": "B01B548A5150FB5BC7AF5A14DA459A6A",
-        "timestamp": "2025-11-29T07:13:33Z"
-      },
-      {
-        "version": "1.0.1.0",
-        "changelog": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/tag/v1.0.1.0",
-        "targetAbi": "10.11.2.0",
-        "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.1.0/AnimeMultiSource_v1.0.1.0.zip",
-        "checksum": "8465B2C782E0A9E6F77402565CCF5BC8",
-        "timestamp": "2025-11-29T06:27:54Z"
-      },
-      {
-        "version": "1.0.0.0",
-        "changelog": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/tag/v1.0.0.0",
-        "targetAbi": "10.11.2.0",
-        "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.0.0/AnimeMultiSource_v1.0.0.0.zip",
-        "checksum": "D6425E5C0AA8BC0830A37273ABE50486",
-        "timestamp": "2025-11-28T14:46:11Z"
-      }
-    ]
-  }
+    {
+        "guid": "8eca6f17-71fe-4309-a670-3cae083f22bd",
+        "name": "Anime Multi Source",
+        "overview": "Anime metadata for series and movies from multiple sources (Jellyfin 12)",
+        "description": "Anime metadata for TV series and movies from AniList, AniDB, MAL, TVDB, Fanart.tv and Fribb mappings. Works with Jellyfin 12.2. Jellyfin 12 fork of webbster64's Anime Multi Source.",
+        "owner": "doogalbeez (fork of webbster64)",
+        "category": "Anime",
+        "imageUrl": "https://raw.githubusercontent.com/doogalbeez/jellyfin-plugin-AnimeMultiSource/main/media/logo.png",
+        "versions": [
+            {
+                "version": "1.0.7.0",
+                "changelog": "Fork by [doogalbeez](https://github.com/doogalbeez) of [webbster64/jellyfin-plugin-AnimeMultiSource](https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource), made with the help of [Claude Code](https://claude.com/claude-code).\n\n**Jellyfin 12**\n- Rebuilt for Jellyfin 12: .NET 10, Jellyfin 12.2.0 packages, plugin ABI 12.0.0.0. Tested on Jellyfin 12.2.0: series, seasons, episodes, movies and all scheduled tasks. No API changes were needed. Notable 12.x behaviour: `SetProviderId` now validates IMDb/TMDb ids, and runtime for videos always comes from the file.\n\n**New**\n- Movie metadata provider: anime films in Movies libraries, identified from AniList/MAL ids on the item, a `.plexmatch` in the movie folder (now also reads `tmdbid`), TMDb/IMDb ids matched against Fribb's movie entries, or a strict AniList title search (exact title, year within 1; can be turned off). AniList results are shown in the *Identify* dialog.\n- \"Fill in missing anime metadata\" scheduled task: refreshes shows and movies in AnimeMultiSource libraries that lack its ids, with a dashboard progress bar, ETA in the log, and a summary in Dashboard → Activity.\n- One log line per series/movie with what was found, how long it took, and running totals.\n- Settings page listed in the dashboard sidebar.\n- Cast language setting: original-language voice cast plus only the dubs that match the file's audio tracks (default), original only, or every dub. The MAL fallback no longer adds every country's dub cast.\n- New logo.\n\n**Faster**\n- Jikan (MAL) requests time out after 15 s instead of 100 s; after 3 failures in a row Jikan is skipped for 10 minutes and AniList data is used. 5xx responses no longer trigger 30–90 s backoffs.\n\n**Fixed**\n- Fribb's TMDb movie ids (`{\"movie\": [id, ...]}`) crashed the TMDb id parser.\n- Jikan durations like \"1 hr 46 min\" were read as 46 minutes.\n- External ID fields on movies said \"Series Id\"; ids are now registered separately for series and movies.\n- Duplicate AniList field and link when the official AniList plugin is installed; anime links are no longer added to people (who carry AniList staff ids).",
+                "targetAbi": "12.0.0.0",
+                "sourceUrl": "https://github.com/doogalbeez/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.7.0/AnimeMultiSource_v1.0.7.0.zip",
+                "checksum": "900F91FDC95BC2AED149AAA15C83BBF5",
+                "timestamp": "2026-10-12T23:07:13Z"
+            },
+            {
+                "version": "1.0.6.14",
+                "changelog": "- Fixed AnimeSchedule Upcoming skipping multi-season anime with a newer season not yet foldered locally (e.g. Re:Zero's part 4): now detects a confirmed next season via AniList's strict `SEQUEL` relation and creates the missing season/episodes for it.\n- Fixed a duplicate/`TBA`-episode bug caused by an unreliable episode lookup (`season.Children` instead of a real `GetEpisodes()` query).\n- Fixed a compounding bug where a wrongly-created virtual season got reused as \"the current season\" on the next run, building an even-more-wrong one on top of it each time.\n- Fixed wrong season numbers for franchises where AniList's sequel-relation hop count doesn't match real-world season numbering (e.g. a \"Part 2\" cour split that doesn't get its own season number) - the season number is now derived from AnimeSchedule's own route naming instead, handling both `-4` and `-2nd-season` style routes.\n- Fixed episodes landing in the wrong season for franchises where AniList doesn't split seasons the same way local folders do - a real, already-foldered season is now always preferred over a guessed number.\n- Stopped gating AnimeSchedule checks on `Series.Status == Ended`: that field is TVDB/Jikan-sourced and unreliable for anime, and was observed skipping a currently-airing show entirely.\n- Fixed `Series.Status` defaulting to \"Not yet released\" for a title already in the library whenever Jikan/MAL had no usable status data; now falls back to AniList's own status, with a safer \"Continuing\" default if both come up empty.\n- Fixed `Series.Status` showing \"Ended\" for a franchise whose first season finished years ago while a later season is currently airing - now checks AniList's latest known season in the sequel chain before settling on Ended.\n- New scheduled task, \"Refresh Recently-Aired Anime Tags\": re-checks tags/genres/status about a week, then again about 3 months, after a series' last episode was added, since AniDB/MAL community tagging takes time to catch up after a new season starts airing.\n\n*Original release by [webbster64](https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource). Built for Jellyfin 10.11.3.*",
+                "targetAbi": "10.11.3.0",
+                "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.6.14/AnimeMultiSource_v1.0.6.14.zip",
+                "checksum": "B3DB841CB9FCE61209E8B5693AAA3440",
+                "timestamp": "2026-08-10T10:59:12Z"
+            },
+            {
+                "version": "1.0.6.5",
+                "changelog": "- Self-heals stale plugin version folders: Jellyfin's plugin updater installs a new version alongside the old one instead of replacing it ([jellyfin/jellyfin#12959](https://github.com/jellyfin/jellyfin/issues/12959)), which can cause both to load at once and break configuration load/save, requiring a manual SSH cleanup after every update. This plugin now deletes its own stale version folders automatically on startup.\n- Recovers your configuration directly from disk instead of silently resetting it to defaults if it ever does hit that type-cast conflict.\n- README updated to cover AnimeSchedule.net setup, `.plexmatch` `anilistid`/`malid` overrides, localized season folders, the scheduled task, and this fix.\n\n*Original release by [webbster64](https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource). Built for Jellyfin 10.11.3.*",
+                "targetAbi": "10.11.3.0",
+                "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.6.5/AnimeMultiSource_v1.0.6.5.zip",
+                "checksum": "39F97F3DB47E82DBA2B97AF916A1695F",
+                "timestamp": "2026-08-10T06:39:26Z"
+            },
+            {
+                "version": "1.0.6.4",
+                "changelog": "- Fixed the actual reason AnimeSchedule virtual episodes never showed up in Upcoming: they were never persisted (`AddChild` alone only updates the in-memory tree) and had no explicit `Id`. Fixed to match `jellyfin-plugin-tvdb`'s own approach.\n- Stopped TVDB from immediately overwriting the correct air date on new virtual episodes (the previous persistence fix used `QueueRefresh`, which re-triggers the full metadata-provider pipeline including TVDB - now persisted directly instead).\n- Creates a virtual Season 1 when a series has no season yet (Sonarr doesn't create a season folder until its first episode airs - exactly when Upcoming is most useful).\n- Episode names are now `TBA` instead of a fabricated `Episode N`; extended the timetable lookahead from 2 to 4 weeks.\n- New scheduled task (\"Refresh AnimeSchedule Upcoming Episodes\", every 8 hours by default) that walks the whole library independent of series refreshes, to catch schedule delays/reschedules between refreshes.\n- Fixed `AnimeMultiSourceProvider` caching plugin configuration once at startup instead of re-reading it on every call.\n\n*Original release by [webbster64](https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource). Built for Jellyfin 10.11.3.*",
+                "targetAbi": "10.11.3.0",
+                "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.6.4/AnimeMultiSource_v1.0.6.4.zip",
+                "checksum": "6B8F12E667EF50E2B578C16B5EBF8510",
+                "timestamp": "2026-08-10T05:50:18Z"
+            },
+            {
+                "version": "1.0.6.1",
+                "changelog": "- Merged PR #15 (fix malformed TMDB provider IDs from Fribb mappings), PR #12 (Romaji original title option), and PR #13 (README clarification) - thanks @Soitora!\n- `.plexmatch` now accepts `anilistid`/`malid` overrides so titles Fribb hasn't cross-referenced to a TVDB/IMDb id yet can still resolve.\n- Backfill missing AniDB/Kitsu/AniSearch/LiveChart ids from `manami-project/anime-offline-database` when Fribb's own list doesn't have them yet.\n- Season folders named in other languages (e.g. French \"Saison 1\") now resolve instead of being skipped; numbered season titles follow Jellyfin's configured display language; TVDB episode translations follow the library's metadata language instead of always English.\n- New optional AnimeSchedule.net integration: populates Jellyfin's \"Upcoming\" tab with real sub/dub-aware air dates (Sub/Dub/Combined), and serves as an extra title/overview/id fallback when Jikan/AniList/Fribb come up short. Fully opt-in via a personal API key in plugin settings.\n- Fixed a bug where the plugin cached its configuration once at startup and silently ignored settings changes made afterward without a full process restart.\n\n*Original release by [webbster64](https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource). Built for Jellyfin 10.11.3.*",
+                "targetAbi": "10.11.3.0",
+                "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.6.1/AnimeMultiSource_v1.0.6.1.zip",
+                "checksum": "C0B553139CD358E12CD00D1FB2702347",
+                "timestamp": "2026-08-09T14:24:42Z"
+            },
+            {
+                "version": "1.0.5.0",
+                "changelog": "[Release notes](https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/tag/v1.0.5.0). *Original release by [webbster64](https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource).*",
+                "targetAbi": "10.11.3.0",
+                "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.5.0/AnimeMultiSource_v1.0.5.0.zip",
+                "checksum": "DF733F66BA045B157EBCB2661E9ADA04",
+                "timestamp": "2026-06-16T11:00:00Z"
+            },
+            {
+                "version": "1.0.4.9",
+                "changelog": "- Enhanced `AnimeMapping` to robustly handle `themoviedb_id` field from Fribb anime-lists (supports numbers, strings, and nested `{\"tv\": ..., \"movie\": ...}` objects) via new `PreferredTmdbId` property.\n- Fixed title fallback to respect configured language preference (PR #6 by @theflanman). Thanks for the contribution!\n- Cleaned up tag filtering by adding deprecated/low-quality tags to be ignored\n\n*Original release by [webbster64](https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource). Built for Jellyfin 10.11.3.*",
+                "targetAbi": "10.11.3.0",
+                "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.4.9/AnimeMultiSource_v1.0.4.9.zip",
+                "checksum": "67BAB01C5266844D9018A99C6C392C88",
+                "timestamp": "2026-06-16T11:00:00Z"
+            },
+            {
+                "version": "1.0.4.8",
+                "changelog": "- Accept Fribb anime-lists `tvdb_id` field (with legacy `thetvdb_id` fallback) so TVDB mappings load again and .plexmatch lookups resolve.\n\n*Original release by [webbster64](https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource). Built for Jellyfin 10.11.3.*",
+                "targetAbi": "10.11.3.0",
+                "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.4.8/AnimeMultiSource_v1.0.4.8.zip",
+                "checksum": "9DC9EF10D020CFF0A24DCE53C42D6CBF",
+                "timestamp": "2026-01-27T12:11:26Z"
+            },
+            {
+                "version": "1.0.4.7",
+                "changelog": "- Rebuild with the True Beauty manual mapping included and assembly/file versions at 1.0.4.7.\n\n*Original release by [webbster64](https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource). Built for Jellyfin 10.11.3.*",
+                "targetAbi": "10.11.3.0",
+                "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.4.7/AnimeMultiSource_v1.0.4.7.zip",
+                "checksum": "3A630CDCDFE8E9CE7287E7507E2A32D6",
+                "timestamp": "2025-12-30T11:30:00Z"
+            },
+            {
+                "version": "1.0.4.6",
+                "changelog": "- Add a manual mapping override for \"True Beauty (2024)\" (AniList 152184 / MAL 57192) to cover missing TVDB/IMDb in Fribb.\n\n*Original release by [webbster64](https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource). Built for Jellyfin 10.11.3.*",
+                "targetAbi": "10.11.3.0",
+                "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.4.6/AnimeMultiSource_v1.0.4.6.zip",
+                "checksum": "AB1B4AB8EDB195D444DF32F520AFA4DF",
+                "timestamp": "2025-12-30T10:50:00Z"
+            },
+            {
+                "version": "1.0.4.5",
+                "changelog": "- Rebuild with corrected manifest checksum so Jellyfin auto-update installs cleanly.\n\n*Original release by [webbster64](https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource). Built for Jellyfin 10.11.3.*",
+                "targetAbi": "10.11.3.0",
+                "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.4.5/AnimeMultiSource_v1.0.4.5.zip",
+                "checksum": "BD516E83D4E0B1E6E22B3BCCAC86F5D7",
+                "timestamp": "2025-12-29T09:10:00Z"
+            },
+            {
+                "version": "1.0.4.4",
+                "changelog": "- Walk backwards through AniList PREQUEL relations (using year proximity and duration heuristics, with long-episode exceptions) to pick the correct starting AniList ID when Fribb maps to a later sequel (fixes Initial D being labeled as \"Fourth Stage\").\n\n*Original release by [webbster64](https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource). Built for Jellyfin 10.11.3.*",
+                "targetAbi": "10.11.3.0",
+                "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.4.4/AnimeMultiSource_v1.0.4.4.zip",
+                "checksum": "613F182CB0CCDB95D9BCD033AEAC8F77",
+                "timestamp": "2025-12-28T14:20:00Z"
+            },
+            {
+                "version": "1.0.4.3",
+                "changelog": "- When mapping points to a sequel/spin-off, prefer the root AniList media for titles/overview only if it’s not on the override list and its year is closer to the .plexmatch year (keeps Ranking of Kings/Dragon Ball overrides and year-sensitive matches like FM Ghost intact).\n\n*Original release by [webbster64](https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource). Built for Jellyfin 10.11.3.*",
+                "targetAbi": "10.11.3.0",
+                "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.4.3/AnimeMultiSource_v1.0.4.3.zip",
+                "checksum": "6B9AE3F5C7721DD5DCFAE4C5E9DC6D56",
+                "timestamp": "2025-12-28T11:00:00Z"
+            },
+            {
+                "version": "1.0.4.2",
+                "changelog": "- Force-refresh AniList season details (relations + duration) when a sequel link is missing, and refresh non-TV nodes during traversal to ensure movie hops lead to the next TV season. This should resolve KonoSuba S3 IDs without manual intervention.\n\n*Original release by [webbster64](https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource). Built for Jellyfin 10.11.3.*",
+                "targetAbi": "10.11.3.0",
+                "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.4.2/AnimeMultiSource_v1.0.4.2.zip",
+                "checksum": "2348876E19E2389907D73FFAF072BF0F",
+                "timestamp": "2025-12-27T13:35:00Z"
+            },
+            {
+                "version": "1.0.4.1",
+                "changelog": "- Include AniList duration on relation nodes to strengthen movie-to-season traversal and keep AniList/MAL IDs on downstream seasons (e.g., KonoSuba S3).\n\n*Original release by [webbster64](https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource). Built for Jellyfin 10.11.3.*",
+                "targetAbi": "10.11.3.0",
+                "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.4.1/AnimeMultiSource_v1.0.4.1.zip",
+                "checksum": "C62781653B2056A1FF7543598E93B2E2",
+                "timestamp": "2025-12-27T13:15:00Z"
+            },
+            {
+                "version": "1.0.4.0",
+                "changelog": "- Refine AniList relation traversal: score sequel/side-story/alternative links and formats (TV/TV_SHORT/ONA/OVA/MOVIE) and walk through movies using duration heuristics to reach the next TV season, keeping AniList/MAL IDs instead of falling back.\n- Ensure season traversal build matches release version to avoid mixed-version loads.\n\n*Original release by [webbster64](https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource). Built for Jellyfin 10.11.3.*",
+                "targetAbi": "10.11.3.0",
+                "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.4.0/AnimeMultiSource_v1.0.4.0.zip",
+                "checksum": "974260F57D18F8AF25EBEE8C2B23A561",
+                "timestamp": "2025-12-27T13:05:00Z"
+            },
+            {
+                "version": "1.0.3.9",
+                "changelog": "- Treat AniList entries with duration <= 60 minutes (or known long-episode exceptions like Initial D Third Stage) as season candidates when walking sequel chains, so season provider keeps AniList/MAL IDs even when a movie sits between TV seasons.\n\n*Original release by [webbster64](https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource). Built for Jellyfin 10.11.3.*",
+                "targetAbi": "10.11.3.0",
+                "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.3.9/AnimeMultiSource_v1.0.3.9.zip",
+                "checksum": "EC255E03730CE36B0FC1C888688B3B91",
+                "timestamp": "2025-12-27T11:35:00Z"
+            },
+            {
+                "version": "1.0.3.8",
+                "changelog": "- Follow AniList sequel chains through movies/OVAs to find the next TV season, preventing season-name fallback when a film sits between seasons (e.g., KonoSuba S3).\n- Keep numbered season titles even if AniList has no season detail, avoiding TVDB names when using \"Season {number}\".\n\n*Original release by [webbster64](https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource). Built for Jellyfin 10.11.3.*",
+                "targetAbi": "10.11.3.0",
+                "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.3.8/AnimeMultiSource_v1.0.3.8.zip",
+                "checksum": "F69B1C9BF27C1303BABAEA059A51B1E4",
+                "timestamp": "2025-12-27T10:40:00Z"
+            },
+            {
+                "version": "1.0.3.7",
+                "changelog": "- Version bump to publish the latest fixes.\n\n*Original release by [webbster64](https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource). Built for Jellyfin 10.11.3.*",
+                "targetAbi": "10.11.3.0",
+                "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.3.7/AnimeMultiSource_v1.0.3.7.zip",
+                "checksum": "6CD9E995C5E3C0A421840C6275E50982",
+                "timestamp": "2025-12-27T08:51:10Z"
+            },
+            {
+                "version": "1.0.3.6",
+                "changelog": "- Defer all Dragon Ball seasons to TVDB/other providers to avoid broken AniList chains and incorrect season names.\n\n*Original release by [webbster64](https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource). Built for Jellyfin 10.11.3.*",
+                "targetAbi": "10.11.3.0",
+                "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.3.6/AnimeMultiSource_v1.0.3.6.zip",
+                "checksum": "07C8F5374BD19A045220167126BA5226",
+                "timestamp": "2025-12-27T08:40:44Z"
+            },
+            {
+                "version": "1.0.3.5",
+                "changelog": "- When a title is in the override list, skip AniList root realignment entirely (keeps per-show IDs/names for overrides like Dragon Ball Daima).\n\n*Original release by [webbster64](https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource). Built for Jellyfin 10.11.3.*",
+                "targetAbi": "10.11.3.0",
+                "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.3.5/AnimeMultiSource_v1.0.3.5.zip",
+                "checksum": "C3806CD2A926B76E068F6299932D1948",
+                "timestamp": "2025-12-22T13:07:53Z"
+            },
+            {
+                "version": "1.0.3.4",
+                "changelog": "- Add mapping overrides for Dragon Ball entries and Ranking of Kings: Treasure Chest of Courage to prevent ID swaps.\n\n*Original release by [webbster64](https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource). Built for Jellyfin 10.11.3.*",
+                "targetAbi": "10.11.3.0",
+                "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.3.4/AnimeMultiSource_v1.0.3.4.zip",
+                "checksum": "09892F4A5650BD5105D217E1520D5AC0",
+                "timestamp": "2025-12-22T12:48:00Z"
+            },
+            {
+                "version": "1.0.3.3",
+                "changelog": "- Keep season-specific mappings when AniList root differs (prevents ID swaps on sequels like Treasure Chest of Courage).\n\n*Original release by [webbster64](https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource). Built for Jellyfin 10.11.3.*",
+                "targetAbi": "10.11.3.0",
+                "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.3.3/AnimeMultiSource_v1.0.3.3.zip",
+                "checksum": "FDEA22FBEC4CB3E6FC32DB949C860AF9",
+                "timestamp": "2025-12-22T12:07:27Z"
+            },
+            {
+                "version": "1.0.3.2",
+                "changelog": "- Allow ONA titles to use Jikan data (fixes missing rating/title for Japan Sinks: 2020).\n\n*Original release by [webbster64](https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource). Built for Jellyfin 10.11.3.*",
+                "targetAbi": "10.11.3.0",
+                "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.3.2/AnimeMultiSource_v1.0.3.2.zip",
+                "checksum": "8162D9EA0BF80581324EB58CF7E1064F",
+                "timestamp": "2025-12-22T10:55:49Z"
+            },
+            {
+                "version": "1.0.3.1",
+                "changelog": "- Aggregate AniDB tags across all mapped TV seasons for the series.\n- Populate season tags from AniDB per season mapping (no genre fallback).\n\n*Original release by [webbster64](https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource). Built for Jellyfin 10.11.3.*",
+                "targetAbi": "10.11.3.0",
+                "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.3.1/AnimeMultiSource_v1.0.3.1.zip",
+                "checksum": "2CAA68D09A7561C1B39FFE45140E9E70",
+                "timestamp": "2025-12-22T10:11:01Z"
+            },
+            {
+                "version": "1.0.3.0",
+                "changelog": "- Append an AMS rating label to the displayed rating line.\n\n*Original release by [webbster64](https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource). Built for Jellyfin 10.11.3.*",
+                "targetAbi": "10.11.3.0",
+                "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.3.0/AnimeMultiSource_v1.0.3.0.zip",
+                "checksum": "7EF39EC4427CC002715997E54F21DB8D",
+                "timestamp": "2025-12-22T09:51:10Z"
+            },
+            {
+                "version": "1.0.2.2",
+                "changelog": "- Skip processing when .plexmatch is missing; log a clear banner and exit.\n\n*Original release by [webbster64](https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource). Built for Jellyfin 10.11.3.*",
+                "targetAbi": "10.11.3.0",
+                "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.2.2/AnimeMultiSource_v1.0.2.2.zip",
+                "checksum": "CF0A19D33AC830584E338A6724895979",
+                "timestamp": "2025-12-21T12:52:18Z"
+            },
+            {
+                "version": "1.0.2.1",
+                "changelog": "- Avoid false-positive AniDB ban detection on valid XML responses.\n\n*Original release by [webbster64](https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource). Built for Jellyfin 10.11.3.*",
+                "targetAbi": "10.11.3.0",
+                "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.2.1/AnimeMultiSource_v1.0.2.1.zip",
+                "checksum": "F5D6A8B009DA5D3E4B566CB5FAB028C0",
+                "timestamp": "2025-12-18T13:51:20Z"
+            },
+            {
+                "version": "1.0.2.0",
+                "changelog": "- Set assembly version to match plugin version.\n- Use cached AniDB tags even when AniDB is rate-limited.\n\n*Original release by [webbster64](https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource). Built for Jellyfin 10.11.3.*",
+                "targetAbi": "10.11.3.0",
+                "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.2.0/AnimeMultiSource_v1.0.2.0.zip",
+                "checksum": "90AF7FA8DCD91CC5AACE7CAAE3F69EFA",
+                "timestamp": "2025-12-18T12:35:36Z"
+            },
+            {
+                "version": "1.0.1.6",
+                "changelog": "- Use cached AniDB tags even when AniDB is rate-limited.\n\n*Original release by [webbster64](https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource). Built for Jellyfin 10.11.3.*",
+                "targetAbi": "10.11.3.0",
+                "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.1.6/AnimeMultiSource_v1.0.1.6.zip",
+                "checksum": "A88C96FB795F467D3C80A6F73088AF2A",
+                "timestamp": "2025-12-18T12:11:10Z"
+            },
+            {
+                "version": "1.0.1.5",
+                "changelog": "- Fix season artwork lookups by prioritizing series TVDB IDs for seasons.\n\n*Original release by [webbster64](https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource). Built for Jellyfin 10.11.3.*",
+                "targetAbi": "10.11.3.0",
+                "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.1.5/AnimeMultiSource_v1.0.1.5.zip",
+                "checksum": "142C43AA5A1ED20A6B12278B2F7212EB",
+                "timestamp": "2025-12-18T11:48:54Z"
+            },
+            {
+                "version": "1.0.1.4",
+                "changelog": "- Guard against configuration load failures during multi-version plugin updates.\n\n*Original release by [webbster64](https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource). Built for Jellyfin 10.11.3.*",
+                "targetAbi": "10.11.3.0",
+                "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.1.4/AnimeMultiSource_v1.0.1.4.zip",
+                "checksum": "F7AF5B3FC468720C9C75B4CF979CE487",
+                "timestamp": "2025-12-18T10:35:20Z"
+            },
+            {
+                "version": "1.0.1.3",
+                "changelog": "- Fix external URL labels by splitting providers per service.\n- Ensure season sort title is always set and enforce sort ordering.\n- Set season index number for consistent season artwork lookups.\n- Add Fanart.tv language tagging, optional language override, and size probing.\n\n*Original release by [webbster64](https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource). Built for Jellyfin 10.11.3.*",
+                "targetAbi": "10.11.3.0",
+                "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.1.3/AnimeMultiSource_v1.0.1.3.zip",
+                "checksum": "9F4DA139054BFB3B57AC99E250D9C3F8",
+                "timestamp": "2025-12-18T10:13:33Z"
+            },
+            {
+                "version": "1.0.1.1",
+                "changelog": "- Prefer TV mappings over OVA duplicates in Fribb anime lists to avoid mis-linking (e.g., Future Diary now maps to the TV entry).\n\n*Original release by [webbster64](https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource). Built for Jellyfin 10.11.2.*",
+                "targetAbi": "10.11.2.0",
+                "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.1.1/AnimeMultiSource_v1.0.1.1.zip",
+                "checksum": "B01B548A5150FB5BC7AF5A14DA459A6A",
+                "timestamp": "2025-11-29T07:13:33Z"
+            },
+            {
+                "version": "1.0.1.0",
+                "changelog": "- Add TVDB poster/banner/logo/clearart fallback when Fanart.tv has no series art.\n- Reuse the TVDB series payload across season lookups to avoid duplicate API calls.\n- Fix TVDB backdrop type handling so backgrounds are detected correctly.\n\n*Original release by [webbster64](https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource). Built for Jellyfin 10.11.2.*",
+                "targetAbi": "10.11.2.0",
+                "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.1.0/AnimeMultiSource_v1.0.1.0.zip",
+                "checksum": "8465B2C782E0A9E6F77402565CCF5BC8",
+                "timestamp": "2025-11-29T06:27:54Z"
+            },
+            {
+                "version": "1.0.0.0",
+                "changelog": "- Initial release targeting Jellyfin 10.11.2 ABI.\n\n*Original release by [webbster64](https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource). Built for Jellyfin 10.11.2.*",
+                "targetAbi": "10.11.2.0",
+                "sourceUrl": "https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource/releases/download/v1.0.0.0/AnimeMultiSource_v1.0.0.0.zip",
+                "checksum": "D6425E5C0AA8BC0830A37273ABE50486",
+                "timestamp": "2025-11-28T14:46:11Z"
+            }
+        ]
+    }
 ]

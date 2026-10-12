@@ -1,7 +1,7 @@
 ---
 name: "AnimeMultiSource"
 guid: "8eca6f17-71fe-4309-a670-3cae083f22bd"
-version: "1.0.1.1"
+version: "1.0.7.0"
 targetAbi: "12.0.0.0"
 framework: "net10.0"
 overview: "Anime metadata for series and movies from multiple sources (Jellyfin 12)"
