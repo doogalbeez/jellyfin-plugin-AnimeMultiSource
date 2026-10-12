@@ -12,7 +12,7 @@ namespace Jellyfin.Plugin.AnimeMultiSource
     public class Plugin : BasePlugin<Configuration.PluginConfiguration>, IHasWebPages
     {
         public override string Name => Constants.PluginName;
-        public override string Description => "Multi-source anime metadata provider using .plexmatch files and Fribb anime lists";
+        public override string Description => "Anime metadata for TV series and movies from AniList, AniDB, MAL, TVDB, Fanart.tv and Fribb mappings. Works with Jellyfin 12.2. Jellyfin 12 fork of webbster64's Anime Multi Source.";
         public override Guid Id => Guid.Parse(Constants.PluginGuid);
 
         public Plugin(

@@ -4,14 +4,13 @@ guid: "8eca6f17-71fe-4309-a670-3cae083f22bd"
 version: "1.0.1.1"
 targetAbi: "12.0.0.0"
 framework: "net10.0"
-overview: "a attempt at a better Metadata plugin for anime"
+overview: "Anime metadata for series and movies from multiple sources (Jellyfin 12)"
 description: >
-  a attempt at a better Metadata plugin for anime using data from Multiple Source and combining it into one
-  using data from Multiple Source and combining it into one.
-  Data from Anilist, AniDB, Mal 
+  Anime metadata for TV series and movies from AniList, AniDB, MAL, TVDB, Fanart.tv and Fribb mappings. Works with Jellyfin 12.2. Jellyfin 12 fork of webbster64's Anime Multi Source.
 category: "Metadata"
-owner: "Webbster64"
+owner: "doogalbeez (fork of webbster64)"
 artifacts:
 - "Jellyfin.Plugin.AnimeMultiSource.dll"
 changelog: >
-  Prefers TV mappings over OVA duplicates in Fribb mapping data to avoid mis-linking series like Future Diary.
+  Jellyfin 12 fork: Jellyfin 12.2 support, movie metadata provider, "Fill in missing anime metadata" task with progress,
+  per-item progress log, sidebar link, cast language setting, Jikan fast-fail, TMDb/runtime/External ID fixes, new logo.

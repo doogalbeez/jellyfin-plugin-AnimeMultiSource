@@ -1,5 +1,30 @@
 # Changelog
 
+## 1.0.7.0 (Jellyfin 12 fork) - 2026-10
+Fork by [doogalbeez](https://github.com/doogalbeez) of [webbster64/jellyfin-plugin-AnimeMultiSource](https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource), made with the help of [Claude Code](https://claude.com/claude-code).
+
+**Jellyfin 12**
+- Rebuilt for Jellyfin 12: .NET 10, Jellyfin 12.2.0 packages, plugin ABI 12.0.0.0. Tested on Jellyfin 12.2.0: series, seasons, episodes, movies and all scheduled tasks. No API changes were needed. Notable 12.x behaviour: `SetProviderId` now validates IMDb/TMDb ids, and runtime for videos always comes from the file.
+
+**New**
+- Movie metadata provider: anime films in Movies libraries, identified from AniList/MAL ids on the item, a `.plexmatch` in the movie folder (now also reads `tmdbid`), TMDb/IMDb ids matched against Fribb's movie entries, or a strict AniList title search (exact title, year within 1; can be turned off). AniList results are shown in the *Identify* dialog.
+- "Fill in missing anime metadata" scheduled task: refreshes shows and movies in AnimeMultiSource libraries that lack its ids, with a dashboard progress bar, ETA in the log, and a summary in Dashboard → Activity.
+- One log line per series/movie with what was found, how long it took, and running totals.
+- Settings page listed in the dashboard sidebar.
+- Cast language setting: original-language voice cast plus only the dubs that match the file's audio tracks (default), original only, or every dub. The MAL fallback no longer adds every country's dub cast.
+- New logo.
+
+**Faster**
+- Jikan (MAL) requests time out after 15 s instead of 100 s; after 3 failures in a row Jikan is skipped for 10 minutes and AniList data is used. 5xx responses no longer trigger 30–90 s backoffs.
+
+**Fixed**
+- Fribb's TMDb movie ids (`{"movie": [id, ...]}`) crashed the TMDb id parser.
+- Jikan durations like "1 hr 46 min" were read as 46 minutes.
+- External ID fields on movies said "Series Id"; ids are now registered separately for series and movies.
+- Duplicate AniList field and link when the official AniList plugin is installed; anime links are no longer added to people (who carry AniList staff ids).
+
+*Entries below are from the original plugin by [webbster64](https://github.com/webbster64).*
+
 ## 1.0.6.14 - 2026-08-10
 - Fixed AnimeSchedule Upcoming skipping multi-season anime with a newer season not yet foldered locally (e.g. Re:Zero's part 4): now detects a confirmed next season via AniList's strict `SEQUEL` relation and creates the missing season/episodes for it.
 - Fixed a duplicate/`TBA`-episode bug caused by an unreliable episode lookup (`season.Children` instead of a real `GetEpisodes()` query).
