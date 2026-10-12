@@ -1,9 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" width="1200" height="900">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#0b0f22"/>
-      <stop offset="60%" stop-color="#141a3a"/>
-      <stop offset="100%" stop-color="#1e1244"/>
+      <stop offset="0%" stop-color="#1d2756"/>
+      <stop offset="60%" stop-color="#29357a"/>
+      <stop offset="100%" stop-color="#3d2c86"/>
     </linearGradient>
     <pattern id="dots" width="36" height="36" patternUnits="userSpaceOnUse">
       <circle cx="2" cy="2" r="2" fill="#8fa3ff"/>
@@ -16,16 +16,17 @@
       <stop offset="100%" stop-color="#AA5CC3"/>
     </linearGradient>
     <radialGradient id="glass" cx="45%" cy="40%" r="70%">
-      <stop offset="0%" stop-color="#26346a"/>
-      <stop offset="100%" stop-color="#0a0e22"/>
+      <stop offset="0%" stop-color="#4a5ca8"/>
+      <stop offset="100%" stop-color="#1f2a5e"/>
     </radialGradient>
     <linearGradient id="skin" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#f6dfcf"/>
-      <stop offset="100%" stop-color="#e6c1ab"/>
+      <stop offset="0%" stop-color="#fde8da"/>
+      <stop offset="100%" stop-color="#f0cdb8"/>
     </linearGradient>
     <linearGradient id="hair" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#2a3870"/>
-      <stop offset="100%" stop-color="#0c1026"/>
+      <stop offset="0%" stop-color="#ffb366"/>
+      <stop offset="55%" stop-color="#ec7a33"/>
+      <stop offset="100%" stop-color="#b9471d"/>
     </linearGradient>
     <radialGradient id="iris" cx="50%" cy="25%" r="85%">
       <stop offset="0%" stop-color="#bff4ff"/>
@@ -37,9 +38,9 @@
       <stop offset="100%" stop-color="#b9c7ff"/>
     </linearGradient>
     <linearGradient id="handle" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#2a2f52"/>
-      <stop offset="50%" stop-color="#4a5285"/>
-      <stop offset="100%" stop-color="#2a2f52"/>
+      <stop offset="0%" stop-color="#3e4677"/>
+      <stop offset="50%" stop-color="#6c76b4"/>
+      <stop offset="100%" stop-color="#3e4677"/>
     </linearGradient>
     <pattern id="houndstooth" width="24" height="24" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
       <rect width="24" height="24" fill="#3b2a6a"/>
@@ -86,7 +87,7 @@
   <g transform="rotate(45 400 400)">
     <rect x="372" y="620" width="56" height="250" rx="22" fill="url(#handle)"/>
     <rect x="372" y="680" width="56" height="120" fill="url(#houndstooth)"/>
-    <rect x="364" y="596" width="72" height="40" rx="10" fill="#4a5285"/>
+    <rect x="364" y="596" width="72" height="40" rx="10" fill="#6c76b4"/>
   </g>
 
   <!-- lens -->
@@ -96,12 +97,12 @@
     <!-- ===== original detective, head turned and tilted down, thinking hard ===== -->
     <g transform="translate(400 404) scale(0.84) translate(-400 -430) rotate(-7 400 430)">
       <!-- coat, shirt, tie -->
-      <path d="M 210 640 L 262 560 L 352 540 L 400 650 Z" fill="#2c3352"/>
-      <path d="M 600 640 L 548 556 L 452 538 L 410 650 Z" fill="#2c3352"/>
+      <path d="M 210 640 L 262 560 L 352 540 L 400 650 Z" fill="#4b5a96"/>
+      <path d="M 600 640 L 548 556 L 452 538 L 410 650 Z" fill="#4b5a96"/>
       <path d="M 352 540 L 400 590 L 452 538 L 440 640 L 364 640 Z" fill="#f4f6fb"/>
-      <path d="M 392 588 L 410 588 L 418 650 L 386 650 Z" fill="#f2a541"/>
-      <path d="M 262 560 L 352 540 L 330 610 Z" fill="#3b4470"/>
-      <path d="M 548 556 L 452 538 L 478 606 Z" fill="#3b4470"/>
+      <path d="M 392 588 L 410 588 L 418 650 L 386 650 Z" fill="#26c6d9"/>
+      <path d="M 262 560 L 352 540 L 330 610 Z" fill="#6474bb"/>
+      <path d="M 548 556 L 452 538 L 478 606 Z" fill="#6474bb"/>
       <!-- neck -->
       <path d="M 378 520 L 440 520 L 446 586 L 384 586 Z" fill="#d9ad96"/>
 
@@ -124,12 +125,12 @@
       <path d="M 302 356 L 506 380 L 504 420 C 450 402, 360 394, 302 404 Z" fill="#b98a7a" opacity="0.25"/>
       <!-- spiky bangs -->
       <path d="M 288 368 L 296 300 C 330 256, 470 252, 518 314 L 512 380 L 494 340 L 482 396 L 458 334 L 440 384 L 420 328 L 398 386 L 380 330 L 360 392 L 344 336 L 322 394 L 314 344 Z" fill="url(#hair)"/>
-      <path d="M 318 300 C 352 272, 424 264, 466 280" fill="none" stroke="#5f7fe0" stroke-width="6" stroke-linecap="round" opacity="0.5"/>
+      <path d="M 318 300 C 352 272, 424 264, 466 280" fill="none" stroke="#ffe0b0" stroke-width="7" stroke-linecap="round" opacity="0.7"/>
       <path d="M 410 226 C 424 180, 466 168, 482 190 C 456 190, 438 206, 428 230 Z" fill="url(#hair)"/>
 
       <!-- furrowed brows + crease -->
-      <path d="M 316 384 C 334 382, 360 390, 380 404 L 376 412 C 358 400, 336 394, 318 394 Z" fill="#0c1026"/>
-      <path d="M 486 378 C 466 378, 440 388, 420 402 L 424 410 C 442 398, 466 390, 484 390 Z" fill="#0c1026"/>
+      <path d="M 316 384 C 334 382, 360 390, 380 404 L 376 412 C 358 400, 336 394, 318 394 Z" fill="#a13d17"/>
+      <path d="M 486 378 C 466 378, 440 388, 420 402 L 424 410 C 442 398, 466 390, 484 390 Z" fill="#a13d17"/>
       <path d="M 396 398 L 398 412 M 404 396 L 404 410" stroke="#b98a7a" stroke-width="2.5" stroke-linecap="round"/>
 
       <!-- wide, intense eyes with small pupils glancing sideways -->
@@ -149,15 +150,27 @@
       <path d="M 368 516 C 380 508, 398 508, 414 516" fill="none" stroke="#7e4a40" stroke-width="4" stroke-linecap="round"/>
       <path d="M 376 524 C 388 528, 400 528, 408 524" fill="none" stroke="#c48f78" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
 
-      <!-- fist pressed under the chin -->
-      <path d="M 300 660 C 318 600, 340 566, 362 548 C 384 532, 424 530, 448 544 C 462 554, 458 570, 444 572 C 458 580, 454 598, 438 598 C 450 608, 444 624, 428 622 C 436 634, 428 648, 410 644 L 360 660 Z" fill="#efcab4"/>
-      <g fill="none" stroke="#b98370" stroke-width="3" stroke-linecap="round">
-        <path d="M 400 548 C 418 548, 434 556, 444 572"/>
-        <path d="M 396 566 C 414 568, 428 580, 438 598"/>
-        <path d="M 392 586 C 408 590, 420 604, 428 622"/>
-        <path d="M 356 566 C 372 560, 388 556, 400 548"/>
+      <!-- fist pressed under the chin: sleeve cuff, back of the hand, knuckles, curled fingers, thumb on the jaw -->
+      <path d="M 300 700 L 336 612 L 402 628 L 374 704 Z" fill="#4b5a96"/>
+      <path d="M 334 606 L 404 622 L 396 646 L 326 630 Z" fill="#6474bb"/>
+      <path d="M 352 562 C 350 544, 370 536, 394 538 L 446 542 C 466 544, 474 560, 468 578 L 456 612 C 450 628, 430 634, 410 630 L 366 620 C 348 614, 344 594, 352 562 Z"
+            fill="#f6d6c3" stroke="#c48f78" stroke-width="2.5" stroke-linejoin="round"/>
+      <g fill="#f6d6c3" stroke="#c48f78" stroke-width="2.5">
+        <circle cx="372" cy="550" r="13"/>
+        <circle cx="395" cy="546" r="13"/>
+        <circle cx="418" cy="547" r="13"/>
+        <circle cx="440" cy="552" r="12"/>
       </g>
-      <path d="M 362 548 C 376 540, 392 540, 404 546" fill="none" stroke="#efcab4" stroke-width="10" stroke-linecap="round"/>
+      <path d="M 358 556 C 360 570, 470 570, 470 560 L 466 584 C 440 592, 380 590, 352 580 Z" fill="#f6d6c3"/>
+      <g fill="none" stroke="#c48f78" stroke-width="2.5" stroke-linecap="round">
+        <path d="M 383 560 C 384 572, 384 584, 382 596"/>
+        <path d="M 406 558 C 408 572, 408 586, 406 600"/>
+        <path d="M 429 560 C 432 574, 432 588, 428 602"/>
+        <path d="M 366 598 C 392 606, 426 608, 454 600"/>
+      </g>
+      <path d="M 358 600 C 338 584, 334 556, 346 540 C 354 528, 370 528, 374 540 C 372 556, 372 572, 378 588 Z"
+            fill="#fbe0cf" stroke="#c48f78" stroke-width="2.5" stroke-linejoin="round"/>
+      <path d="M 350 548 C 356 544, 364 544, 368 548" fill="none" stroke="#c48f78" stroke-width="2" stroke-linecap="round"/>
     </g>
 
     <!-- ===== analysis: landmarks + tracking mesh (same tilt) ===== -->
@@ -213,5 +226,5 @@
   <!-- wordmark -->
   <text x="890" y="500" text-anchor="middle" font-family="Fira Sans" font-weight="900" font-size="230" letter-spacing="-4" fill="url(#word)">AMS</text>
   <rect x="680" y="530" width="420" height="6" rx="3" fill="url(#ring)"/>
-  <text x="890" y="600" text-anchor="middle" font-family="Fira Sans" font-weight="600" font-size="38" letter-spacing="7" fill="#9fb0e6">ANIME MULTI SOURCE</text>
+  <text x="890" y="600" text-anchor="middle" font-family="Fira Sans" font-weight="600" font-size="38" letter-spacing="7" fill="#c3cdf5">ANIME MULTI SOURCE</text>
 </svg>
