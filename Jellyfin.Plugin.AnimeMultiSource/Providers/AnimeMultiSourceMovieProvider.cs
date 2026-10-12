@@ -7,8 +7,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Entities.Movies;
+using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
+using MediaBrowser.Model.Globalization;
 using MediaBrowser.Model.Providers;
 using Microsoft.Extensions.Logging;
 
@@ -22,11 +24,18 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
         private readonly ILogger<AnimeMultiSourceMovieProvider> _logger;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly AnimeMultiSourceService _animeService;
+        private readonly AudioLanguageDetector _audioLanguages;
 
-        public AnimeMultiSourceMovieProvider(ILogger<AnimeMultiSourceMovieProvider> logger, IHttpClientFactory httpClientFactory)
+        public AnimeMultiSourceMovieProvider(
+            ILogger<AnimeMultiSourceMovieProvider> logger,
+            IHttpClientFactory httpClientFactory,
+            ILibraryManager libraryManager,
+            IMediaSourceManager mediaSourceManager,
+            ILocalizationManager localization)
         {
             _logger = logger;
             _httpClientFactory = httpClientFactory;
+            _audioLanguages = new AudioLanguageDetector(libraryManager, mediaSourceManager, localization, logger);
             _animeService = new AnimeMultiSourceService(logger);
         }
 
@@ -34,6 +43,7 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
 
         public async Task<MetadataResult<Movie>> GetMetadata(MovieInfo info, CancellationToken cancellationToken)
         {
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
             _logger.LogInformation("=== MOVIE METADATA PROVIDER CALL for: {Name} (Path: {Path}) ===", info.Name, info.Path);
 
             var config = Plugin.GetConfigurationSafe(_logger);
@@ -41,7 +51,8 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
 
             try
             {
-                var metadata = await _animeService.GetMetadataForMovie(info, config);
+                var metadata = await _animeService.GetMetadataForMovie(info, config, _audioLanguages.ForMovie(info.Path));
+                MetadataProgress.Report(_logger, "Movie", info.Name, stopwatch, metadata);
                 if (metadata == null)
                 {
                     return result;

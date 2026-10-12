@@ -133,7 +133,7 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
 
         private static int _serviceCallCount = 0;
 
-        public async Task<AnimeMetadata?> GetMetadataForSeries(SeriesInfo info, Configuration.PluginConfiguration config)
+        public async Task<AnimeMetadata?> GetMetadataForSeries(SeriesInfo info, Configuration.PluginConfiguration config, IReadOnlyCollection<string>? audioLanguages = null)
         {
             var callId = Interlocked.Increment(ref _serviceCallCount);
             _logger.LogInformation("=== SERVICE CALL #{CallId} for: {Name} ===", callId, info.Name);
@@ -360,10 +360,10 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
             _logger.LogInformation("=== SERVICE COMPLETED CALL #{CallId} ===", callId);
 
             // Create combined metadata
-            return await CreateCombinedMetadata(plexMatchData, mapping, jikanData, aniListData, rootAniListId, effectiveMalId, config, info.MetadataLanguage);
+            return await CreateCombinedMetadata(plexMatchData, mapping, jikanData, aniListData, rootAniListId, effectiveMalId, config, info.MetadataLanguage, audioLanguages);
         }
 
-        public async Task<AnimeMetadata?> GetMetadataForMovie(MovieInfo info, Configuration.PluginConfiguration config)
+        public async Task<AnimeMetadata?> GetMetadataForMovie(MovieInfo info, Configuration.PluginConfiguration config, IReadOnlyCollection<string>? audioLanguages = null)
         {
             var callId = Interlocked.Increment(ref _serviceCallCount);
             _logger.LogInformation("=== MOVIE SERVICE CALL #{CallId} for: {Name} ({Year}) ===", callId, info.Name, info.Year);
@@ -462,7 +462,7 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
                 jikanData = await _apiService.GetJikanAnimeAsync(effectiveMalId.Value);
             }
 
-            var metadata = await CreateMovieMetadata(info, mapping, jikanData, aniListData, effectiveMalId, config);
+            var metadata = await CreateMovieMetadata(info, mapping, jikanData, aniListData, effectiveMalId, config, audioLanguages);
             _logger.LogInformation("=== MOVIE SERVICE COMPLETED CALL #{CallId} ===", callId);
             return metadata;
         }
@@ -473,7 +473,8 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
             JikanAnime? jikanData,
             AniListMedia? aniListData,
             long? effectiveMalId,
-            Configuration.PluginConfiguration config)
+            Configuration.PluginConfiguration config,
+            IReadOnlyCollection<string>? audioLanguages)
         {
             // A MAL id that points at a TV entry (bad mapping) would pull series data into a movie.
             var primaryJikan = jikanData != null && jikanData.Type?.StartsWith("TV", StringComparison.OrdinalIgnoreCase) == true ? null : jikanData;
@@ -525,7 +526,7 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
             {
                 try
                 {
-                    metadata.People = await _apiService.GetPeopleAsync(aniListId ?? 0, effectiveMalId ?? 0);
+                    metadata.People = await _apiService.GetPeopleAsync(aniListId ?? 0, effectiveMalId ?? 0, config.CastLanguageMode, audioLanguages);
                 }
                 catch (Exception ex)
                 {
@@ -674,7 +675,8 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
             long? rootAniListId,
             long? effectiveMalId,
             Configuration.PluginConfiguration config,
-            string? metadataLanguage)
+            string? metadataLanguage,
+            IReadOnlyCollection<string>? audioLanguages)
         {
             // Prefer root AniList media when mapping points at a sequel/spin-off stage.
             AniListMedia? aniListPrimary = aniListData;
@@ -799,9 +801,10 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
                 try
                 {
                     metadata.People = await _apiService.GetPeopleAsync(
-                        rootAniListId ?? 0, 
-                        mapping.mal_id ?? 0
-                    );
+                        rootAniListId ?? 0,
+                        mapping.mal_id ?? 0,
+                        config.CastLanguageMode,
+                        audioLanguages);
                     _logger.LogDebug("Fetched {Count} people for {Title}", metadata.People?.Count ?? 0, metadata.Title);
                 }
                 catch (Exception ex)

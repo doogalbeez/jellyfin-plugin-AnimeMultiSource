@@ -196,6 +196,9 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
     {
         [JsonPropertyName("person")]
         public JikanPerson? Person { get; set; }
+
+        [JsonPropertyName("language")]
+        public string? Language { get; set; }
     }
 
     public class JikanPerson

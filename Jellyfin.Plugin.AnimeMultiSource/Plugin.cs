@@ -149,7 +149,11 @@ namespace Jellyfin.Plugin.AnimeMultiSource
                 new PluginPageInfo
                 {
                     Name = Constants.PluginName,
-                    EmbeddedResourcePath = $"{GetType().Namespace}.Configuration.configPage.html"
+                    EmbeddedResourcePath = $"{GetType().Namespace}.Configuration.configPage.html",
+                    // Listed under "Plugins" in the dashboard's left sidebar.
+                    EnableInMainMenu = true,
+                    DisplayName = "Anime Multi Source",
+                    MenuIcon = "animation"
                 }
             };
         }

@@ -63,6 +63,18 @@
                         <div class="fieldDescription">Anilist provides duration in minutes. Jikan provides duration as string (e.g., "24 min").</div>
                     </div>
 
+                    <!-- Cast Configuration -->
+                    <h2>Cast Language</h2>
+                    <div class="selectContainer">
+                        <label class="selectLabel" for="castLanguageMode">Voice actors to add to Cast &amp; Crew</label>
+                        <select is="emby-select" id="castLanguageMode" name="castLanguageMode" class="emby-select-withcolor emby-select">
+                            <option value="OriginalAndAudioTracks">Original language + dubs matching the file's audio tracks</option>
+                            <option value="OriginalOnly">Original language only</option>
+                            <option value="All">Every dub (all countries)</option>
+                        </select>
+                        <div class="fieldDescription">The original cast is the anime's production language (Japanese for Japanese anime). A dub cast, e.g. English, is only added when an episode or movie file has an audio track in that language. Dub roles are labelled, e.g. "Frieren (English dub)".</div>
+                    </div>
+
                     <!-- Movie Configuration -->
                     <h2>Movie Configuration</h2>
                     <div class="checkboxContainer">
@@ -229,6 +241,7 @@
                         document.getElementById('fanartLanguages').value = config.FanartLanguages || '';
                         document.getElementById('fanartProbeImageSize').checked = config.FanartProbeImageSize !== false;
                         document.getElementById('enableMovieTitleSearch').checked = config.EnableMovieTitleSearch !== false;
+                        document.getElementById('castLanguageMode').value = config.CastLanguageMode || 'OriginalAndAudioTracks';
                         document.getElementById('backdropMinWidth').value = config.BackdropMinWidth || 0;
                         document.getElementById('backdropMinHeight').value = config.BackdropMinHeight || 0;
                         document.getElementById('backdropAspectPreset').value = AnimeMultiSourceConfigurationPage.getAspectPreset(config.BackdropMinAspectRatio);
@@ -271,6 +284,7 @@
                         config.FanartLanguages = document.getElementById('fanartLanguages').value;
                         config.FanartProbeImageSize = document.getElementById('fanartProbeImageSize').checked;
                         config.EnableMovieTitleSearch = document.getElementById('enableMovieTitleSearch').checked;
+                        config.CastLanguageMode = document.getElementById('castLanguageMode').value;
                         config.BackdropMinWidth = parseInt(document.getElementById('backdropMinWidth').value || '0');
                         config.BackdropMinHeight = parseInt(document.getElementById('backdropMinHeight').value || '0');
                         config.BackdropMinAspectRatio = AnimeMultiSourceConfigurationPage.aspectPresetToValue(document.getElementById('backdropAspectPreset').value);

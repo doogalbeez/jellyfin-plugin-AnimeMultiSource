@@ -70,6 +70,10 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
 
         [JsonPropertyName("coverImage")]
         public AniListCoverImage? CoverImage { get; set; }
+
+        // ISO 3166 code of the production country (JP, CN, KR, TW) - decides the "original" cast language.
+        [JsonPropertyName("countryOfOrigin")]
+        public string? CountryOfOrigin { get; set; }
     }
 
     public class AniListCoverImage
@@ -145,6 +149,16 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
         
         [JsonPropertyName("voiceActors")]
         public List<AniListVoiceActor>? VoiceActors { get; set; }
+
+        // Every dub's voice actor for this character, each with its language.
+        [JsonPropertyName("voiceActorRoles")]
+        public List<AniListVoiceActorRole>? VoiceActorRoles { get; set; }
+    }
+
+    public class AniListVoiceActorRole
+    {
+        [JsonPropertyName("voiceActor")]
+        public AniListVoiceActor? VoiceActor { get; set; }
     }
 
     public class AniListCharacter
@@ -172,6 +186,9 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
         
         [JsonPropertyName("language")]
         public string? Language { get; set; }
+
+        [JsonPropertyName("languageV2")]
+        public string? LanguageV2 { get; set; }
     }
 
     public class AniListStaffConnection

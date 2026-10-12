@@ -4,8 +4,10 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using MediaBrowser.Controller.Entities.TV;
+using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
+using MediaBrowser.Model.Globalization;
 using MediaBrowser.Model.Providers;
 using Microsoft.Extensions.Logging;
 
@@ -16,13 +18,19 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
     {
         private readonly ILogger<AnimeMultiSourceProvider> _logger;
         private readonly AnimeMultiSourceService _animeService;
+        private readonly AudioLanguageDetector _audioLanguages;
 
         // Add a static counter to track how many times the provider is called
         private static int _callCount = 0;
 
-        public AnimeMultiSourceProvider(ILogger<AnimeMultiSourceProvider> logger)
+        public AnimeMultiSourceProvider(
+            ILogger<AnimeMultiSourceProvider> logger,
+            ILibraryManager libraryManager,
+            IMediaSourceManager mediaSourceManager,
+            ILocalizationManager localization)
         {
             _logger = logger;
+            _audioLanguages = new AudioLanguageDetector(libraryManager, mediaSourceManager, localization, logger);
 
             // Create service with simplified dependency chain
             _animeService = new AnimeMultiSourceService(logger);
@@ -32,6 +40,7 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
 
         public async Task<MetadataResult<Series>> GetMetadata(SeriesInfo info, CancellationToken cancellationToken)
         {
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
             var callId = Interlocked.Increment(ref _callCount);
             var assemblyVersion = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
             _logger.LogInformation("=== METADATA PROVIDER CALL #{CallId} v{Version} for: {Name} (Path: {Path}) ===",
@@ -50,7 +59,8 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
 
             try
             {
-                var metadata = await _animeService.GetMetadataForSeries(info, config);
+                var metadata = await _animeService.GetMetadataForSeries(info, config, _audioLanguages.ForSeries(info.Path));
+                MetadataProgress.Report(_logger, "Series", info.Name, stopwatch, metadata);
                 if (metadata == null)
                 {
                     _logger.LogDebug("No metadata found for {Path}", info.Path);

@@ -14,6 +14,7 @@ using System.Xml;
 using System.Xml.Serialization;
 using MediaBrowser.Controller.Entities; // For PersonInfo
 using Microsoft.Extensions.Logging;
+using Jellyfin.Data.Enums;
 using Jellyfin.Plugin.AnimeMultiSource;
 
 namespace Jellyfin.Plugin.AnimeMultiSource.Providers
@@ -40,7 +41,7 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
         private static readonly ConcurrentDictionary<int, AniListCacheEntry<AniListMedia>> _aniListMediaCache = new();
         private static readonly ConcurrentDictionary<int, AniListCacheEntry<AniListSeasonDetail>> _aniListSeasonCache = new();
         private static readonly ConcurrentDictionary<int, AniListCacheEntry<int>> _aniListRootCache = new();
-        private static readonly ConcurrentDictionary<int, AniListCacheEntry<List<PersonInfo>>> _aniListPeopleCache = new();
+        private static readonly ConcurrentDictionary<int, AniListCacheEntry<AniListCast>> _aniListCastCache = new();
         private static readonly TimeSpan PersistentCacheMaxAge = TimeSpan.FromDays(5);
         private static readonly object PersistentCacheLock = new();
         private static bool _persistentCacheLoaded;
@@ -715,32 +716,42 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
             return studios.Where(s => !string.IsNullOrEmpty(s)).Distinct().ToList();
         }
 
-        public async Task<List<PersonInfo>> GetPeopleAsync(long anilistId, long malId)
+        // Voice actors + staff. AniList returns every dub's voice actors with their language; keep the
+        // original-language cast (from the anime's country of origin) and only the dubs the caller allows -
+        // by default the languages of the item's own audio tracks (see AudioLanguageDetector).
+        public async Task<List<PersonInfo>> GetPeopleAsync(long anilistId, long malId, Configuration.CastLanguageModeType mode, IReadOnlyCollection<string>? audioLanguages)
         {
             var people = new List<PersonInfo>();
 
             try
             {
-                // Try AniList first for people data
-                var aniListPeople = await GetAniListPeopleAsync(anilistId);
-                if (aniListPeople != null)
+                var cast = await GetAniListCastAsync(anilistId);
+                var originalLanguage = OriginalLanguageForCountry(cast.CountryOfOrigin);
+
+                foreach (var member in cast.Members)
                 {
-                    people.AddRange(aniListPeople);
+                    if (member.IsVoice && !IsCastLanguageAllowed(member.Language, originalLanguage, mode, audioLanguages))
+                    {
+                        continue;
+                    }
+
+                    people.Add(ToPersonInfo(member, originalLanguage));
                 }
 
                 // If we don't have enough people, try Jikan as fallback
                 if (people.Count < 5 && malId > 0)
                 {
-                    var jikanPeople = await GetJikanPeopleAsync(malId);
-                    if (jikanPeople != null)
+                    foreach (var member in await GetJikanCastAsync(malId))
                     {
-                        // Merge without duplicates
-                        foreach (var person in jikanPeople)
+                        if (!IsCastLanguageAllowed(member.Language, originalLanguage, mode, audioLanguages))
                         {
-                            if (!people.Any(p => p.Name == person.Name && p.Role == person.Role))
-                            {
-                                people.Add(person);
-                            }
+                            continue;
+                        }
+
+                        var person = ToPersonInfo(member, originalLanguage);
+                        if (!people.Any(p => p.Name == person.Name && p.Role == person.Role))
+                        {
+                            people.Add(person);
                         }
                     }
                 }
@@ -753,20 +764,66 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
             return people;
         }
 
-        private async Task<List<PersonInfo>> GetAniListPeopleAsync(long anilistId)
+        private static string OriginalLanguageForCountry(string? countryOfOrigin)
+        {
+            return countryOfOrigin?.ToUpperInvariant() switch
+            {
+                "KR" => "Korean",
+                "CN" or "TW" or "HK" => "Chinese",
+                _ => "Japanese"
+            };
+        }
+
+        private static bool IsCastLanguageAllowed(string? language, string originalLanguage, Configuration.CastLanguageModeType mode, IReadOnlyCollection<string>? audioLanguages)
+        {
+            if (mode == Configuration.CastLanguageModeType.All)
+            {
+                return true;
+            }
+
+            // A voice actor with no language recorded is assumed to be the original cast.
+            if (string.IsNullOrWhiteSpace(language) || string.Equals(language, originalLanguage, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            return mode == Configuration.CastLanguageModeType.OriginalAndAudioTracks
+                && audioLanguages != null
+                && audioLanguages.Any(a => string.Equals(a, language, StringComparison.OrdinalIgnoreCase));
+        }
+
+        private static PersonInfo ToPersonInfo(CastMember member, string originalLanguage)
+        {
+            if (!member.IsVoice)
+            {
+                return new PersonInfo { Name = member.Name, Role = member.Role, ImageUrl = member.ImageUrl };
+            }
+
+            var isDub = !string.IsNullOrWhiteSpace(member.Language) && !string.Equals(member.Language, originalLanguage, StringComparison.OrdinalIgnoreCase);
+            return new PersonInfo
+            {
+                Name = member.Name,
+                Role = isDub ? $"Voice - {member.Role} ({member.Language} dub)" : $"Voice - {member.Role}",
+                ImageUrl = member.ImageUrl,
+                Type = PersonKind.Actor
+            };
+        }
+
+        private async Task<AniListCast> GetAniListCastAsync(long anilistId)
         {
             try
             {
-                if (anilistId > int.MaxValue) return new List<PersonInfo>();
+                if (anilistId <= 0 || anilistId > int.MaxValue) return new AniListCast();
                 var intAniListId = (int)anilistId;
-                if (TryGetAniListCache(_aniListPeopleCache, intAniListId, "people", out List<PersonInfo> cached))
+                if (TryGetAniListCache(_aniListCastCache, intAniListId, "cast", out AniListCast cached))
                 {
-                    return new List<PersonInfo>(cached);
+                    return cached;
                 }
 
                 var query = @"
                     query ($id: Int) {
                         Media(id: $id) {
+                            countryOfOrigin
                             characters(perPage: 50, sort: ROLE) {
                                 edges {
                                     node {
@@ -774,18 +831,18 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
                                         name {
                                             full
                                         }
-                                        image {
-                                            large
-                                        }
                                     }
                                     role
-                                    voiceActors(language: JAPANESE) {
-                                        id
-                                        name {
-                                            full
-                                        }
-                                        image {
-                                            large
+                                    voiceActorRoles {
+                                        voiceActor {
+                                            id
+                                            name {
+                                                full
+                                            }
+                                            image {
+                                                large
+                                            }
+                                            languageV2
                                         }
                                     }
                                 }
@@ -807,11 +864,8 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
                         }
                     }";
 
-                var variables = new { id = intAniListId };
-                var request = new { query, variables };
-
-                var jsonRequest = JsonSerializer.Serialize(request);
-                var content = new StringContent(jsonRequest, System.Text.Encoding.UTF8, "application/json");
+                var request = new { query, variables = new { id = intAniListId } };
+                var content = new StringContent(JsonSerializer.Serialize(request), System.Text.Encoding.UTF8, "application/json");
 
                 await EnforceAniListRateLimitAsync();
                 var response = await _httpClient.PostAsync("https://graphql.anilist.co", content);
@@ -819,24 +873,26 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
                 {
                     var json = await response.Content.ReadAsStringAsync();
                     var aniListResponse = JsonSerializer.Deserialize<AniListResponse>(json);
-                    var people = ParseAniListPeople(aniListResponse?.Data?.Media);
-                    StoreAniListCache(_aniListPeopleCache, intAniListId, new List<PersonInfo>(people), "people");
-                    return people;
+                    var cast = ParseAniListCast(aniListResponse?.Data?.Media);
+                    StoreAniListCache(_aniListCastCache, intAniListId, cast, "cast");
+                    return cast;
                 }
+
+                _logger.LogWarning("AniList cast request for {AniListId} returned status code: {StatusCode}", anilistId, response.StatusCode);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error fetching AniList people data for ID {AniListId}", anilistId);
             }
 
-            return new List<PersonInfo>();
+            return new AniListCast();
         }
 
-        private async Task<List<PersonInfo>> GetJikanPeopleAsync(long malId)
+        private async Task<List<CastMember>> GetJikanCastAsync(long malId)
         {
             try
             {
-                if (malId > int.MaxValue) return new List<PersonInfo>();
+                if (malId > int.MaxValue) return new List<CastMember>();
                 var intMalId = (int)malId;
 
                 var url = $"https://api.jikan.moe/v4/anime/{intMalId}/characters";
@@ -846,7 +902,7 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
                 {
                     var json = await response.Content.ReadAsStringAsync();
                     var jikanResponse = JsonSerializer.Deserialize<JikanCharactersResponse>(json);
-                    return ParseJikanPeople(jikanResponse?.Data);
+                    return ParseJikanCast(jikanResponse?.Data);
                 }
             }
             catch (Exception ex)
@@ -854,84 +910,95 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
                 _logger.LogError(ex, "Error fetching Jikan people data for MAL ID {MalId}", malId);
             }
 
-            return new List<PersonInfo>();
+            return new List<CastMember>();
         }
 
-        private List<PersonInfo> ParseAniListPeople(AniListMedia? media)
+        private static AniListCast ParseAniListCast(AniListMedia? media)
         {
-            var people = new List<PersonInfo>();
+            var cast = new AniListCast { CountryOfOrigin = media?.CountryOfOrigin };
 
-            if (media?.Characters?.Edges != null)
+            foreach (var characterEdge in media?.Characters?.Edges ?? new List<AniListCharacterEdge>())
             {
-                foreach (var characterEdge in media.Characters.Edges)
-                {
-                    if (characterEdge?.Node == null)
-                        continue;
+                if (characterEdge?.Node == null || characterEdge.VoiceActorRoles == null)
+                    continue;
 
-                    // Only add voice actors; skip character entries
-                    if (characterEdge.VoiceActors != null)
+                // Only add voice actors; skip character entries
+                foreach (var va in characterEdge.VoiceActorRoles.Select(r => r.VoiceActor).Where(v => v != null))
+                {
+                    cast.Members.Add(new CastMember
                     {
-                        foreach (var va in characterEdge.VoiceActors)
-                        {
-                            people.Add(new PersonInfo
-                            {
-                                Name = va.Name?.Full ?? "Unknown VA",
-                                Role = $"Voice - {characterEdge.Node.Name?.Full}",
-                                ImageUrl = va.Image?.Large
-                            });
-                        }
-                    }
+                        Name = va!.Name?.Full ?? "Unknown VA",
+                        Role = characterEdge.Node.Name?.Full,
+                        ImageUrl = va.Image?.Large,
+                        Language = va.LanguageV2,
+                        IsVoice = true
+                    });
                 }
             }
 
-            if (media?.Staff?.Edges != null)
+            foreach (var staffEdge in media?.Staff?.Edges ?? new List<AniListStaffEdge>())
             {
-                foreach (var staffEdge in media.Staff.Edges)
+                if (staffEdge?.Node != null)
                 {
-                    if (staffEdge?.Node != null)
+                    cast.Members.Add(new CastMember
                     {
-                        people.Add(new PersonInfo
-                        {
-                            Name = staffEdge.Node.Name?.Full ?? "Unknown Staff",
-                            Role = staffEdge.Role ?? "Staff",
-                            ImageUrl = staffEdge.Node.Image?.Large
-                        });
-                    }
+                        Name = staffEdge.Node.Name?.Full ?? "Unknown Staff",
+                        Role = staffEdge.Role ?? "Staff",
+                        ImageUrl = staffEdge.Node.Image?.Large
+                    });
                 }
             }
 
-            return people;
+            return cast;
         }
 
-        private List<PersonInfo> ParseJikanPeople(List<JikanCharacter>? characters)
+        private static List<CastMember> ParseJikanCast(List<JikanCharacter>? characters)
         {
-            var people = new List<PersonInfo>();
+            var cast = new List<CastMember>();
 
-            if (characters != null)
+            foreach (var character in characters ?? new List<JikanCharacter>())
             {
-                foreach (var character in characters)
-                {
-                    if (character?.Character == null)
-                        continue;
+                if (character?.Character == null || character.VoiceActors == null)
+                    continue;
 
-                    // Only add voice actors; skip character entries
-                    if (character.VoiceActors != null)
+                // Only add voice actors; skip character entries
+                foreach (var va in character.VoiceActors)
+                {
+                    cast.Add(new CastMember
                     {
-                        foreach (var va in character.VoiceActors)
-                        {
-                            people.Add(new PersonInfo
-                            {
-                                Name = va.Person?.Name ?? "Unknown VA",
-                                Role = $"Voice - {character.Character.Name}",
-                                // Type property is not available in Jellyfin 10.11.3
-                                ImageUrl = va.Person?.Images?.WebP?.ImageUrl
-                            });
-                        }
-                    }
+                        Name = va.Person?.Name ?? "Unknown VA",
+                        Role = character.Character.Name,
+                        ImageUrl = va.Person?.Images?.WebP?.ImageUrl,
+                        Language = va.Language,
+                        IsVoice = true
+                    });
                 }
             }
 
-            return people;
+            return cast;
+        }
+
+        // Cached per AniList id with every language, so changing the cast setting or the audio tracks
+        // never needs a new AniList request.
+        public sealed class AniListCast
+        {
+            public string? CountryOfOrigin { get; set; }
+
+            public List<CastMember> Members { get; set; } = new();
+        }
+
+        public sealed class CastMember
+        {
+            public string Name { get; set; } = string.Empty;
+
+            // Character name for voice actors, job for staff.
+            public string? Role { get; set; }
+
+            public string? ImageUrl { get; set; }
+
+            public string? Language { get; set; }
+
+            public bool IsVoice { get; set; }
         }
 
         public List<SeasonRelation> GetSequelRelations(AniListMedia aniList)
@@ -1426,23 +1493,96 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
             }
         }
 
+        // Jikan (the MAL API) has outages where requests hang until HttpClient's 100 s default timeout,
+        // and a single series refresh makes several Jikan calls - minutes of waiting per item. Give up on
+        // a request after JikanRequestTimeout, and after a few failures in a row stop calling Jikan for
+        // a while: everything it supplies has an AniList fallback.
+        private static readonly TimeSpan JikanRequestTimeout = TimeSpan.FromSeconds(15);
+        private const int JikanFailuresBeforePause = 3;
+        private static readonly TimeSpan JikanPauseDuration = TimeSpan.FromMinutes(10);
+        private static readonly object JikanHealthLock = new();
+        private static int _jikanConsecutiveFailures;
+        private static DateTimeOffset _jikanPausedUntil = DateTimeOffset.MinValue;
+
+        public static bool IsJikanPaused
+        {
+            get
+            {
+                lock (JikanHealthLock)
+                {
+                    return DateTimeOffset.UtcNow < _jikanPausedUntil;
+                }
+            }
+        }
+
+        private void RecordJikanResult(bool success, string context, string reason)
+        {
+            lock (JikanHealthLock)
+            {
+                if (success)
+                {
+                    _jikanConsecutiveFailures = 0;
+                    return;
+                }
+
+                _jikanConsecutiveFailures++;
+                if (_jikanConsecutiveFailures < JikanFailuresBeforePause)
+                {
+                    _logger.LogWarning("Jikan (MAL) request for {Context} failed ({Reason}); {Count}/{Max} before pausing Jikan",
+                        context, reason, _jikanConsecutiveFailures, JikanFailuresBeforePause);
+                    return;
+                }
+
+                _jikanPausedUntil = DateTimeOffset.UtcNow + JikanPauseDuration;
+                _jikanConsecutiveFailures = 0;
+                _logger.LogWarning("Jikan (MAL) failed {Max} times in a row (last: {Reason}); skipping Jikan until {Until:HH:mm} and using AniList data only",
+                    JikanFailuresBeforePause, reason, _jikanPausedUntil.ToLocalTime());
+            }
+        }
+
         private async Task<HttpResponseMessage?> SendJikanRequestAsync(string url, string context)
         {
             for (var attempt = 1; attempt <= 3; attempt++)
             {
+                if (IsJikanPaused)
+                {
+                    _logger.LogDebug("Skipping Jikan request for {Context}: Jikan is paused after repeated failures", context);
+                    return null;
+                }
+
                 await EnforceJikanRateLimitAsync();
-                var response = await _httpClient.GetAsync(url);
+                HttpResponseMessage response;
+                try
+                {
+                    using var timeout = new System.Threading.CancellationTokenSource(JikanRequestTimeout);
+                    response = await _httpClient.GetAsync(url, timeout.Token);
+                }
+                catch (Exception ex) when (ex is TaskCanceledException or HttpRequestException)
+                {
+                    RecordJikanResult(false, context, ex is TaskCanceledException ? $"no response within {JikanRequestTimeout.TotalSeconds:F0} s" : ex.Message);
+                    return null;
+                }
 
                 if (response.IsSuccessStatusCode)
                 {
+                    RecordJikanResult(true, context, string.Empty);
                     return response;
                 }
 
-                if (response.StatusCode == HttpStatusCode.TooManyRequests ||
-                    response.StatusCode == HttpStatusCode.ServiceUnavailable)
+                // 5xx (including 503) means Jikan or MAL behind it is down: waiting won't help.
+                if ((int)response.StatusCode >= 500)
                 {
-                    var backoff = AddJitter(GetRetryAfterDelay(response, TimeSpan.FromSeconds(Math.Min(30 * attempt, 90))));
-                    _logger.LogWarning("Jikan rate limited for {Context} (status {Status}); backing off {DelayMs} ms before retry {Attempt}", context, response.StatusCode, backoff.TotalMilliseconds, attempt);
+                    RecordJikanResult(false, context, $"HTTP {(int)response.StatusCode}");
+                    response.Dispose();
+                    return null;
+                }
+
+                if (response.StatusCode == HttpStatusCode.TooManyRequests)
+                {
+                    var retryAfter = GetRetryAfterDelay(response, TimeSpan.FromSeconds(5 * attempt));
+                    var backoff = AddJitter(retryAfter > TimeSpan.FromSeconds(30) ? TimeSpan.FromSeconds(30) : retryAfter);
+                    _logger.LogWarning("Jikan rate limited for {Context}; backing off {DelayMs} ms before retry {Attempt}", context, backoff.TotalMilliseconds, attempt);
+                    response.Dispose();
                     await Task.Delay(backoff);
                     continue;
                 }
@@ -1450,7 +1590,7 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
                 return response;
             }
 
-            _logger.LogWarning("Jikan request for {Context} to {Url} failed after retries", context, url);
+            RecordJikanResult(false, context, "still rate limited after retries");
             return null;
         }
 
@@ -1675,7 +1815,7 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
                 RestoreCache(_aniListMediaCache, snapshot.AniListMedia);
                 RestoreCache(_aniListSeasonCache, snapshot.AniListSeason);
                 RestoreCache(_aniListRootCache, snapshot.AniListRoot);
-                RestoreCache(_aniListPeopleCache, snapshot.AniListPeople);
+                RestoreCache(_aniListCastCache, snapshot.AniListCast);
 
                 _logger.LogInformation("Persistent cache loaded from {Path}", path);
             }
@@ -1716,7 +1856,7 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
                 AniListRoot = _aniListRootCache
                     .Where(kvp => now - kvp.Value.CachedAt < PersistentCacheMaxAge)
                     .ToDictionary(kvp => kvp.Key, kvp => kvp.Value),
-                AniListPeople = _aniListPeopleCache
+                AniListCast = _aniListCastCache
                     .Where(kvp => now - kvp.Value.CachedAt < PersistentCacheMaxAge)
                     .ToDictionary(kvp => kvp.Key, kvp => kvp.Value)
             };
@@ -1820,7 +1960,7 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
             public Dictionary<int, AniListCacheEntry<AniListMedia>> AniListMedia { get; set; } = new();
             public Dictionary<int, AniListCacheEntry<AniListSeasonDetail>> AniListSeason { get; set; } = new();
             public Dictionary<int, AniListCacheEntry<int>> AniListRoot { get; set; } = new();
-            public Dictionary<int, AniListCacheEntry<List<PersonInfo>>> AniListPeople { get; set; } = new();
+            public Dictionary<int, AniListCacheEntry<AniListCast>> AniListCast { get; set; } = new();
         }
 
         private sealed record AniDbCacheEntry(DateTimeOffset CachedAt, List<string> Tags, string? MainTitle = null);

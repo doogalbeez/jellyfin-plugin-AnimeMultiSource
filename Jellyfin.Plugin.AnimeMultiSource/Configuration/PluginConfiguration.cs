@@ -44,6 +44,13 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Configuration
         PreferJikan
     }
 
+    public enum CastLanguageModeType
+    {
+        OriginalOnly,
+        OriginalAndAudioTracks,
+        All
+    }
+
     public enum AnimeScheduleModeType
     {
         Sub,
@@ -125,6 +132,9 @@ Action";
             // Movies
             EnableMovieTitleSearch = true;
 
+            // Cast
+            CastLanguageMode = CastLanguageModeType.OriginalAndAudioTracks;
+
             // Fanart.tv
             FanartMaxBackdrops = 5;
             PersonalApiKey = string.Empty;
@@ -166,6 +176,9 @@ Action";
 
         // Movie settings
         public bool EnableMovieTitleSearch { get; set; }
+
+        // Which dubs' voice actors to add to Cast & Crew.
+        public CastLanguageModeType CastLanguageMode { get; set; }
 
         // Fanart.tv
         public string PersonalApiKey { get; set; }
