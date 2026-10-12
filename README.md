@@ -133,12 +133,13 @@ See [CHANGELOG.md](CHANGELOG.md) for full details.
 | 1.0.6.5 | 2026-08-10 | webbster64 | Self-healing stale plugin version folders, config recovery |
 | 1.0.6.4 | 2026-08-10 | webbster64 | AnimeSchedule virtual episodes persisted, "Refresh AnimeSchedule Upcoming Episodes" task |
 | 1.0.6.1 | 2026-08-09 | webbster64, [@Soitora](https://github.com/Soitora) | AnimeSchedule.net integration, `.plexmatch` anilistid/malid, localized seasons, offline-database backfill |
+| 1.0.5.0 | 2026-06-16 | webbster64, [@techman83](https://github.com/techman83) | Fribb JSON parsing fix, IMDb support |
 | 1.0.4.9 | 2026-06-16 | webbster64, [@theflanman](https://github.com/theflanman) | TMDb id handling, title language fallback |
 | 1.0.0.0 – 1.0.4.8 | 2025-11 – 2026-01 | webbster64 | Original plugin and early releases |
 
 ## Credits
 - **[webbster64](https://github.com/webbster64)** — creator of Anime Multi Source. [Original repository](https://github.com/webbster64/jellyfin-plugin-AnimeMultiSource).
-- Contributors to the original: [@Soitora](https://github.com/Soitora), [@theflanman](https://github.com/theflanman).
+- Contributors to the original: [@Soitora](https://github.com/Soitora), [@techman83](https://github.com/techman83), and [@theflanman](https://github.com/theflanman).
 - Jellyfin 12 port, movie support and the features above: [doogalbeez](https://github.com/doogalbeez).
 - Data: [AniList](https://anilist.co), [AniDB](https://anidb.net), [MyAnimeList](https://myanimelist.net) via [Jikan](https://jikan.moe), [TheTVDB](https://thetvdb.com), [Fanart.tv](https://fanart.tv), [Fribb/anime-lists](https://github.com/Fribb/anime-lists), [manami-project/anime-offline-database](https://github.com/manami-project/anime-offline-database), [AnimeSchedule.net](https://animeschedule.net).
 - 🤖 This fork's Jellyfin 12 port, movie support, new features, testing and logo were made with the help of **[Claude Code](https://claude.com/claude-code)**, Anthropic's AI coding assistant.
