@@ -363,6 +363,309 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
             return await CreateCombinedMetadata(plexMatchData, mapping, jikanData, aniListData, rootAniListId, effectiveMalId, config, info.MetadataLanguage);
         }
 
+        public async Task<AnimeMetadata?> GetMetadataForMovie(MovieInfo info, Configuration.PluginConfiguration config)
+        {
+            var callId = Interlocked.Increment(ref _serviceCallCount);
+            _logger.LogInformation("=== MOVIE SERVICE CALL #{CallId} for: {Name} ({Year}) ===", callId, info.Name, info.Year);
+
+            await _animeListMapper.LoadAnimeListsAsync();
+
+            var ids = info.ProviderIds ?? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            AnimeMapping? mapping = null;
+            string? matchedBy = null;
+
+            // 1. Anime ids already on the item (typed into External IDs, or kept from an earlier refresh).
+            if (TryGetLongId(ids, Constants.AniListProviderId, out var itemAniListId))
+            {
+                mapping = _animeListMapper.GetMappingByAniListId(itemAniListId) ?? new AnimeMapping { anilist_id = itemAniListId };
+                matchedBy = "AniList id on item";
+            }
+            else if (TryGetLongId(ids, Constants.MalProviderId, out var itemMalId))
+            {
+                mapping = _animeListMapper.GetMappingByMalId(itemMalId) ?? new AnimeMapping { mal_id = itemMalId };
+                matchedBy = "MAL id on item";
+            }
+
+            // 2. A .plexmatch next to the movie file - same hints as for series, plus tmdbid.
+            if (mapping == null)
+            {
+                var plexMatch = await ReadMoviePlexMatchAsync(info.Path);
+                if (plexMatch != null)
+                {
+                    if (plexMatch.AniListId.HasValue)
+                    {
+                        mapping = _animeListMapper.GetMappingByAniListId(plexMatch.AniListId.Value) ?? new AnimeMapping { anilist_id = plexMatch.AniListId.Value };
+                    }
+                    else if (plexMatch.MalId.HasValue)
+                    {
+                        mapping = _animeListMapper.GetMappingByMalId(plexMatch.MalId.Value) ?? new AnimeMapping { mal_id = plexMatch.MalId.Value };
+                    }
+                    else if (plexMatch.TmdbId.HasValue)
+                    {
+                        mapping = _animeListMapper.GetMovieMappingByTmdbId(plexMatch.TmdbId.Value);
+                    }
+
+                    if (mapping == null && !string.IsNullOrEmpty(plexMatch.ImdbId))
+                    {
+                        mapping = _animeListMapper.GetMovieMappingByImdbId(plexMatch.ImdbId);
+                    }
+
+                    matchedBy = mapping != null ? ".plexmatch" : null;
+                }
+            }
+
+            // 3. TMDb/IMDb ids on the item (folder tags like [tmdbid-123], an NFO, or a provider ranked
+            // above this one). These only ever resolve against Fribb's MOVIE entries.
+            if (mapping == null && TryGetLongId(ids, MediaBrowser.Model.Entities.MetadataProvider.Tmdb.ToString(), out var itemTmdbId))
+            {
+                mapping = _animeListMapper.GetMovieMappingByTmdbId(itemTmdbId);
+                matchedBy = mapping != null ? "TMDb id" : null;
+            }
+
+            if (mapping == null && ids.TryGetValue(MediaBrowser.Model.Entities.MetadataProvider.Imdb.ToString(), out var itemImdbId) && !string.IsNullOrWhiteSpace(itemImdbId))
+            {
+                mapping = _animeListMapper.GetMovieMappingByImdbId(itemImdbId.Trim());
+                matchedBy = mapping != null ? "IMDb id" : null;
+            }
+
+            // 4. Last resort: a strict AniList title search (exact title, year within 1).
+            if (mapping == null && config.EnableMovieTitleSearch)
+            {
+                var match = await FindAniListMovieByTitleAsync(CleanMovieName(info.Name), info.Year);
+                if (match != null)
+                {
+                    mapping = _animeListMapper.GetMappingByAniListId(match.Id)
+                        ?? new AnimeMapping { anilist_id = match.Id, mal_id = match.IdMal, type = "MOVIE" };
+                    matchedBy = "AniList title search";
+                }
+            }
+
+            if (mapping == null)
+            {
+                _logger.LogInformation("No anime mapping found for movie '{Name}' ({Year}); leaving it to other providers", info.Name, info.Year);
+                return null;
+            }
+
+            _logger.LogInformation("Mapped movie '{Name}' via {MatchedBy} to AniDB: {AniDbId}, AniList: {AniListId}, MAL: {MalId}",
+                info.Name, matchedBy, mapping.anidb_id, mapping.anilist_id, mapping.mal_id);
+
+            AniListMedia? aniListData = null;
+            if (mapping.anilist_id.HasValue)
+            {
+                aniListData = await _apiService.GetAniListAnimeAsync(mapping.anilist_id.Value);
+            }
+
+            long? effectiveMalId = aniListData?.IdMal ?? mapping.mal_id;
+            JikanAnime? jikanData = null;
+            if (effectiveMalId.HasValue)
+            {
+                jikanData = await _apiService.GetJikanAnimeAsync(effectiveMalId.Value);
+            }
+
+            var metadata = await CreateMovieMetadata(info, mapping, jikanData, aniListData, effectiveMalId, config);
+            _logger.LogInformation("=== MOVIE SERVICE COMPLETED CALL #{CallId} ===", callId);
+            return metadata;
+        }
+
+        private async Task<AnimeMetadata> CreateMovieMetadata(
+            MovieInfo info,
+            AnimeMapping mapping,
+            JikanAnime? jikanData,
+            AniListMedia? aniListData,
+            long? effectiveMalId,
+            Configuration.PluginConfiguration config)
+        {
+            // A MAL id that points at a TV entry (bad mapping) would pull series data into a movie.
+            var primaryJikan = jikanData != null && jikanData.Type?.StartsWith("TV", StringComparison.OrdinalIgnoreCase) == true ? null : jikanData;
+            if (jikanData != null && primaryJikan == null)
+            {
+                _logger.LogWarning("Ignoring Jikan metadata for movie {Name} because type '{Type}' is TV", info.Name, jikanData.Type);
+            }
+
+            var ids = info.ProviderIds ?? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            ids.TryGetValue(MediaBrowser.Model.Entities.MetadataProvider.Tmdb.ToString(), out var existingTmdbId);
+            ids.TryGetValue(MediaBrowser.Model.Entities.MetadataProvider.Imdb.ToString(), out var existingImdbId);
+            var mappedTmdbId = mapping.TmdbMovieIds.FirstOrDefault();
+
+            var metadata = new AnimeMetadata
+            {
+                // Keep TMDb/IMDb ids the item already has: Fribb can list several TMDb entries for
+                // one film (split releases), and the item's own id is the one the user's files match.
+                TheMovieDbId = !string.IsNullOrWhiteSpace(existingTmdbId) ? existingTmdbId : (mappedTmdbId > 0 ? mappedTmdbId.ToString(System.Globalization.CultureInfo.InvariantCulture) : null),
+                ImdbId = !string.IsNullOrWhiteSpace(existingImdbId) ? existingImdbId : mapping.imdb_id.FirstOrDefault(),
+                AniDbId = mapping.anidb_id?.ToString(),
+                AniListId = (aniListData?.Id > 0 ? aniListData.Id : mapping.anilist_id)?.ToString(),
+                AniSearchId = mapping.anisearch_id?.ToString(),
+                KitsuId = mapping.kitsu_id?.ToString(),
+                MalId = effectiveMalId?.ToString(),
+                Type = mapping.type,
+                AnimePlanetId = mapping.animeplanet_id
+            };
+
+            var aniListId = aniListData?.Id > 0 ? aniListData.Id : mapping.anilist_id;
+            metadata.Title = await GetConfiguredTitle(primaryJikan, aniListData, config, info.MetadataLanguage, mapping.anidb_id, aniListId, CleanMovieName(info.Name));
+            metadata.OriginalTitle = GetConfiguredOriginalTitle(primaryJikan, aniListData, config);
+
+            metadata.ReleaseDate = primaryJikan?.Aired?.From ?? ToDateTime(aniListData?.StartDate);
+            metadata.Year = metadata.ReleaseDate?.Year ?? aniListData?.StartDate?.Year ?? info.Year;
+            metadata.CommunityRating = primaryJikan?.Score ?? (aniListData?.AverageScore / 10.0);
+
+            metadata.Overview = primaryJikan?.Synopsis;
+            if (string.IsNullOrWhiteSpace(metadata.Overview) && !string.IsNullOrWhiteSpace(aniListData?.Description))
+            {
+                metadata.Overview = StripAnimeScheduleHtml(aniListData!.Description!);
+            }
+
+            metadata.Runtime = GetConfiguredRuntime(primaryJikan, aniListData, config);
+            metadata.ParentalRating = primaryJikan?.Rating;
+            metadata.Genres = _apiService.CombineGenres(primaryJikan, aniListData, GetApprovedGenres(config));
+            metadata.Studios = _apiService.GetStudios(primaryJikan);
+
+            if (aniListId.HasValue || effectiveMalId.HasValue)
+            {
+                try
+                {
+                    metadata.People = await _apiService.GetPeopleAsync(aniListId ?? 0, effectiveMalId ?? 0);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error fetching people data for movie {Title}", metadata.Title);
+                    metadata.People = new List<PersonInfo>();
+                }
+            }
+            else
+            {
+                metadata.People = new List<PersonInfo>();
+            }
+
+            metadata.Tags = config.EnableAniDbTags
+                ? await GetAggregatedAniDbTagsAsync(mapping, null, config)
+                : new List<string>();
+
+            _logger.LogInformation("Populated movie metadata for {Title} with {GenreCount} genres, {StudioCount} studios, {PeopleCount} people, {TagCount} tags",
+                metadata.Title, metadata.Genres?.Count ?? 0, metadata.Studios?.Count ?? 0, metadata.People?.Count ?? 0, metadata.Tags?.Count ?? 0);
+
+            return metadata;
+        }
+
+        public async Task<List<AniListMedia>> SearchAniListMoviesAsync(string title)
+        {
+            return await _apiService.SearchAniListMoviesAsync(title);
+        }
+
+        // Exact (normalized) title match against every AniList title/synonym, and when the library
+        // knows a year, a release year within one of it. Anything looser risks tagging a live-action
+        // film with an anime's metadata, so no match is the safe answer.
+        private async Task<AniListMedia?> FindAniListMovieByTitleAsync(string? name, int? year)
+        {
+            var wanted = NormalizeTitle(name);
+            if (wanted.Length == 0)
+            {
+                return null;
+            }
+
+            var candidates = (await _apiService.SearchAniListMoviesAsync(name!))
+                .Where(m => GetAllTitles(m).Any(t => NormalizeTitle(t) == wanted))
+                .ToList();
+
+            if (year.HasValue)
+            {
+                candidates = candidates
+                    .Where(m => m.StartDate?.Year is int y && Math.Abs(y - year.Value) <= 1)
+                    .OrderBy(m => Math.Abs(m.StartDate!.Year!.Value - year.Value))
+                    .ToList();
+            }
+            else if (candidates.Count > 1)
+            {
+                _logger.LogInformation("AniList title search for movie '{Name}' found {Count} exact matches and no year to pick one; skipping", name, candidates.Count);
+                return null;
+            }
+
+            var match = candidates.FirstOrDefault();
+            _logger.LogInformation("AniList title search for movie '{Name}' ({Year}): {Result}",
+                name, year, match == null ? "no exact match" : $"matched AniList {match.Id} ({match.StartDate?.Year})");
+            return match;
+        }
+
+        private static IEnumerable<string?> GetAllTitles(AniListMedia media)
+        {
+            yield return media.Title?.English;
+            yield return media.Title?.Romaji;
+            yield return media.Title?.Native;
+            foreach (var synonym in media.Synonyms ?? new List<string>())
+            {
+                yield return synonym;
+            }
+        }
+
+        // Before a movie has metadata, its lookup name is the raw folder/file name, e.g.
+        // "Suzume (2022) [tmdbid-916224]". Drop the id tags and the trailing year for searching.
+        public static string CleanMovieName(string? name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                return string.Empty;
+            }
+
+            var cleaned = Regex.Replace(name, @"\[[^\]]*\]|\{[^}]*\}", " ");
+            cleaned = Regex.Replace(cleaned, @"\(\s*(19|20)\d{2}\s*\)\s*$", " ");
+            return Regex.Replace(cleaned, @"\s+", " ").Trim();
+        }
+
+        private static string NormalizeTitle(string? title)
+        {
+            if (string.IsNullOrWhiteSpace(title))
+            {
+                return string.Empty;
+            }
+
+            var lowered = title.ToLowerInvariant().Replace("&", " and ", StringComparison.Ordinal);
+            var collapsed = Regex.Replace(lowered, @"[^\p{L}\p{N}]+", " ").Trim();
+            return collapsed.StartsWith("the ", StringComparison.Ordinal) ? collapsed[4..] : collapsed;
+        }
+
+        private async Task<PlexMatchData?> ReadMoviePlexMatchAsync(string? moviePath)
+        {
+            if (string.IsNullOrWhiteSpace(moviePath))
+            {
+                return null;
+            }
+
+            // A movie's Path is the video file, or the folder itself for DVD/Blu-ray folder rips.
+            var folder = Directory.Exists(moviePath) ? moviePath : Path.GetDirectoryName(moviePath);
+            if (string.IsNullOrEmpty(folder))
+            {
+                return null;
+            }
+
+            var plexMatchPath = Path.Combine(folder, Constants.PlexMatchFileName);
+            if (!File.Exists(plexMatchPath))
+            {
+                return null;
+            }
+
+            _logger.LogInformation("Found movie .plexmatch file at {PlexMatchPath}", plexMatchPath);
+            return _plexMatchParser.ParsePlexMatch(await File.ReadAllTextAsync(plexMatchPath));
+        }
+
+        private static bool TryGetLongId(Dictionary<string, string> ids, string key, out long value)
+        {
+            value = 0;
+            return ids.TryGetValue(key, out var raw)
+                && long.TryParse(raw?.Trim(), System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out value)
+                && value > 0;
+        }
+
+        private static DateTime? ToDateTime(AniListDate? date)
+        {
+            if (date?.Year is not int year)
+            {
+                return null;
+            }
+
+            return new DateTime(year, Math.Clamp(date.Month ?? 1, 1, 12), Math.Clamp(date.Day ?? 1, 1, DateTime.DaysInMonth(year, Math.Clamp(date.Month ?? 1, 1, 12))), 0, 0, 0, DateTimeKind.Utc);
+        }
+
         private async Task<AnimeMetadata> CreateCombinedMetadata(
             PlexMatchData plexMatchData,
             AnimeMapping mapping,

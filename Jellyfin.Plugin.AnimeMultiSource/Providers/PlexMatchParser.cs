@@ -49,6 +49,13 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
                         data.ImdbId = value;
                         _logger?.LogDebug("Parsed IMDb ID: {ImdbId}", value);
                         break;
+                    case "tmdbid":
+                        if (long.TryParse(value, out var tmdbId))
+                        {
+                            data.TmdbId = tmdbId;
+                            _logger?.LogDebug("Parsed TMDb ID: {TmdbId}", tmdbId);
+                        }
+                        break;
                     case "anilistid":
                         if (long.TryParse(value, out var anilistId))
                         {
@@ -76,6 +83,7 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
         public int? Year { get; set; }
         public string TvdbId { get; set; } = string.Empty;
         public string ImdbId { get; set; } = string.Empty;
+        public long? TmdbId { get; set; }
         public long? AniListId { get; set; }
         public long? MalId { get; set; }
     }

@@ -63,6 +63,16 @@
                         <div class="fieldDescription">Anilist provides duration in minutes. Jikan provides duration as string (e.g., "24 min").</div>
                     </div>
 
+                    <!-- Movie Configuration -->
+                    <h2>Movie Configuration</h2>
+                    <div class="checkboxContainer">
+                        <label>
+                            <input id="enableMovieTitleSearch" name="enableMovieTitleSearch" type="checkbox" is="emby-checkbox" />
+                            <span>Identify movies by title when they have no IDs</span>
+                        </label>
+                        <div class="fieldDescription">Movies are matched by AniList/MAL/TMDb/IMDb id first (from the item, an NFO, or a .plexmatch in the movie folder). When none of those exist, search AniList for an anime film with the exact same title and release year (±1). Turn this off if the library also holds non-anime films.</div>
+                    </div>
+
                     <!-- Season Configuration -->
                     <h2>Season Configuration</h2>
                     <div class="selectContainer">
@@ -218,6 +228,7 @@
                         document.getElementById('fanartMaxBackdrops').value = config.FanartMaxBackdrops || 0;
                         document.getElementById('fanartLanguages').value = config.FanartLanguages || '';
                         document.getElementById('fanartProbeImageSize').checked = config.FanartProbeImageSize !== false;
+                        document.getElementById('enableMovieTitleSearch').checked = config.EnableMovieTitleSearch !== false;
                         document.getElementById('backdropMinWidth').value = config.BackdropMinWidth || 0;
                         document.getElementById('backdropMinHeight').value = config.BackdropMinHeight || 0;
                         document.getElementById('backdropAspectPreset').value = AnimeMultiSourceConfigurationPage.getAspectPreset(config.BackdropMinAspectRatio);
@@ -259,6 +270,7 @@
                         config.FanartMaxBackdrops = parseInt(document.getElementById('fanartMaxBackdrops').value || '0');
                         config.FanartLanguages = document.getElementById('fanartLanguages').value;
                         config.FanartProbeImageSize = document.getElementById('fanartProbeImageSize').checked;
+                        config.EnableMovieTitleSearch = document.getElementById('enableMovieTitleSearch').checked;
                         config.BackdropMinWidth = parseInt(document.getElementById('backdropMinWidth').value || '0');
                         config.BackdropMinHeight = parseInt(document.getElementById('backdropMinHeight').value || '0');
                         config.BackdropMinAspectRatio = AnimeMultiSourceConfigurationPage.aspectPresetToValue(document.getElementById('backdropAspectPreset').value);

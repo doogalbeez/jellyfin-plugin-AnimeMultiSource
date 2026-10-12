@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -523,6 +524,64 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
             return null;
         }
 
+        // Title search restricted to AniList's MOVIE format. Only used to identify a movie that
+        // carries no usable id at all; the caller decides which result (if any) is a safe match.
+        public async Task<List<AniListMedia>> SearchAniListMoviesAsync(string title)
+        {
+            if (string.IsNullOrWhiteSpace(title))
+            {
+                return new List<AniListMedia>();
+            }
+
+            try
+            {
+                var query = @"
+                    query ($search: String) {
+                        Page(perPage: 10) {
+                            media(search: $search, type: ANIME, format: MOVIE) {
+                                id
+                                idMal
+                                format
+                                title {
+                                    romaji
+                                    english
+                                    native
+                                }
+                                synonyms
+                                startDate {
+                                    year
+                                    month
+                                    day
+                                }
+                                coverImage {
+                                    large
+                                }
+                            }
+                        }
+                    }";
+
+                var request = new { query, variables = new { search = title } };
+                var content = new StringContent(JsonSerializer.Serialize(request), System.Text.Encoding.UTF8, "application/json");
+
+                await EnforceAniListRateLimitAsync();
+                var response = await _httpClient.PostAsync("https://graphql.anilist.co", content);
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogWarning("AniList movie search returned status code: {StatusCode}", response.StatusCode);
+                    return new List<AniListMedia>();
+                }
+
+                var json = await response.Content.ReadAsStringAsync();
+                var page = JsonSerializer.Deserialize<AniListPageResponse>(json);
+                return page?.Data?.Page?.Media ?? new List<AniListMedia>();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error searching AniList movies for {Title}", title);
+                return new List<AniListMedia>();
+            }
+        }
+
         public async Task<int> GetRootAniListIdAsync(long aniListId)
         {
             if (aniListId > int.MaxValue) return (int)aniListId;
@@ -563,14 +622,18 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
         {
             if (string.IsNullOrEmpty(duration)) return null;
 
-            // Jikan returns duration like "24 min per ep", we just want the number
-            var match = System.Text.RegularExpressions.Regex.Match(duration, @"(\d+)\s*min");
-            if (match.Success)
+            // Jikan returns duration like "24 min per ep" for series, but "1 hr 46 min" or "2 hr"
+            // for movies - count the hours too instead of reading "1 hr 46 min" as 46 minutes.
+            var hours = System.Text.RegularExpressions.Regex.Match(duration, @"(\d+)\s*hr");
+            var minutes = System.Text.RegularExpressions.Regex.Match(duration, @"(\d+)\s*min");
+            if (!hours.Success && !minutes.Success)
             {
-                return match.Groups[1].Value;
+                return null;
             }
 
-            return null;
+            var total = (hours.Success ? int.Parse(hours.Groups[1].Value, CultureInfo.InvariantCulture) * 60 : 0)
+                + (minutes.Success ? int.Parse(minutes.Groups[1].Value, CultureInfo.InvariantCulture) : 0);
+            return total.ToString(CultureInfo.InvariantCulture);
         }
 
         public string MapJikanStatus(string? jikanStatus)

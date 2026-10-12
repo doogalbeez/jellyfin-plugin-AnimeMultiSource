@@ -122,6 +122,9 @@ Action";
             SeasonTitleFormat = SeasonTitleFormatType.MetadataTitle;
             SeasonOverviewSource = SeasonOverviewSourceType.PreferJikan;
 
+            // Movies
+            EnableMovieTitleSearch = true;
+
             // Fanart.tv
             FanartMaxBackdrops = 5;
             PersonalApiKey = string.Empty;
@@ -160,6 +163,9 @@ Action";
         // Season settings
         public SeasonTitleFormatType SeasonTitleFormat { get; set; }
         public SeasonOverviewSourceType SeasonOverviewSource { get; set; }
+
+        // Movie settings
+        public bool EnableMovieTitleSearch { get; set; }
 
         // Fanart.tv
         public string PersonalApiKey { get; set; }

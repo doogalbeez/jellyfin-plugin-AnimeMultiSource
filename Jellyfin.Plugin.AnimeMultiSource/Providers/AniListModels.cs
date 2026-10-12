@@ -64,6 +64,36 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
 
         [JsonPropertyName("idMal")]
         public int? IdMal { get; set; }
+
+        [JsonPropertyName("synonyms")]
+        public List<string>? Synonyms { get; set; }
+
+        [JsonPropertyName("coverImage")]
+        public AniListCoverImage? CoverImage { get; set; }
+    }
+
+    public class AniListCoverImage
+    {
+        [JsonPropertyName("large")]
+        public string? Large { get; set; }
+    }
+
+    public class AniListPageResponse
+    {
+        [JsonPropertyName("data")]
+        public AniListPageData? Data { get; set; }
+    }
+
+    public class AniListPageData
+    {
+        [JsonPropertyName("Page")]
+        public AniListPage? Page { get; set; }
+    }
+
+    public class AniListPage
+    {
+        [JsonPropertyName("media")]
+        public List<AniListMedia>? Media { get; set; }
     }
 
     public class AniListTitle

@@ -19,6 +19,10 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
         private static Dictionary<string, AnimeMapping> _mappingsByImdb = new();
         private static Dictionary<long, AnimeMapping> _mappingsByAniList = new();
         private static Dictionary<long, AnimeMapping> _mappingsByMal = new();
+        // Movie-only indexes: the general IMDb index above prefers TV entries when an id is shared,
+        // which is right for series but would hand a movie lookup the wrong entry.
+        private static Dictionary<long, AnimeMapping> _movieMappingsByTmdb = new();
+        private static Dictionary<string, AnimeMapping> _movieMappingsByImdb = new();
         private static DateTime _lastUpdated = DateTime.MinValue;
         private static readonly SemaphoreSlim LoadLock = new(1, 1);
         private static readonly TimeSpan CacheDuration = TimeSpan.FromHours(Constants.AnimeListCacheHours);
@@ -81,16 +85,33 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
                     .ToDictionary(g => g.Key, g => SelectPreferredMapping(g))
                     ?? new Dictionary<long, AnimeMapping>();
 
+                var movieMappings = mappings?
+                    .Where(m => string.Equals(m.type?.Trim(), "MOVIE", StringComparison.OrdinalIgnoreCase))
+                    .ToList() ?? new List<AnimeMapping>();
+
+                var movieMappingsByTmdb = movieMappings
+                    .SelectMany(m => m.TmdbMovieIds.Select(id => (id, m)))
+                    .GroupBy(x => x.id)
+                    .ToDictionary(g => g.Key, g => g.Select(x => x.m).OrderBy(m => m.anilist_id ?? long.MaxValue).First());
+
+                var movieMappingsByImdb = movieMappings
+                    .SelectMany(m => m.imdb_id.Select(id => (id, m)))
+                    .Where(x => !string.IsNullOrEmpty(x.id))
+                    .GroupBy(x => x.id, StringComparer.OrdinalIgnoreCase)
+                    .ToDictionary(g => g.Key, g => g.Select(x => x.m).OrderBy(m => m.anilist_id ?? long.MaxValue).First(), StringComparer.OrdinalIgnoreCase);
+
                 await BackfillFromOfflineDatabaseAsync(mappingsByAniList);
 
                 _mappingsByTvdb = mappingsByTvdb;
                 _mappingsByImdb = mappingsByImdb;
                 _mappingsByAniList = mappingsByAniList;
                 _mappingsByMal = mappingsByMal;
+                _movieMappingsByTmdb = movieMappingsByTmdb;
+                _movieMappingsByImdb = movieMappingsByImdb;
                 _lastUpdated = DateTime.UtcNow;
 
-                _logger.LogInformation("Loaded {Count} anime mappings with {TvdbCount} TVDB entries and {ImdbCount} IMDb entries",
-                    mappings?.Count ?? 0, _mappingsByTvdb.Count, _mappingsByImdb.Count);
+                _logger.LogInformation("Loaded {Count} anime mappings with {TvdbCount} TVDB entries and {ImdbCount} IMDb entries ({MovieTmdbCount} TMDb movie ids)",
+                    mappings?.Count ?? 0, _mappingsByTvdb.Count, _mappingsByImdb.Count, _movieMappingsByTmdb.Count);
             }
             catch (Exception ex)
             {
@@ -192,6 +213,16 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
             return _mappingsByMal.TryGetValue(malId, out var mapping) ? mapping : null;
         }
 
+        public AnimeMapping? GetMovieMappingByTmdbId(long tmdbMovieId)
+        {
+            return _movieMappingsByTmdb.TryGetValue(tmdbMovieId, out var mapping) ? mapping : null;
+        }
+
+        public AnimeMapping? GetMovieMappingByImdbId(string imdbId)
+        {
+            return _movieMappingsByImdb.TryGetValue(imdbId, out var mapping) ? mapping : null;
+        }
+
         private AnimeMapping SelectPreferredMapping(IEnumerable<AnimeMapping> group)
         {
             return group
@@ -255,24 +286,61 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
 
                 var value = themoviedb_id.Value;
 
-                if (value.ValueKind == JsonValueKind.Number)
-                    return value.GetInt64();
-
-                if (value.ValueKind == JsonValueKind.String &&
-                    long.TryParse(value.GetString(), out var id))
-                    return id;
-
                 if (value.ValueKind == JsonValueKind.Object)
                 {
                     if (value.TryGetProperty("tv", out var tv))
-                        return tv.GetInt64();
+                        return ReadTmdbIds(tv).FirstOrDefault() is var tvId && tvId > 0 ? tvId : null;
 
                     if (value.TryGetProperty("movie", out var movie))
-                        return movie.GetInt64();
+                        return ReadTmdbIds(movie).FirstOrDefault() is var movieId && movieId > 0 ? movieId : null;
+
+                    return null;
                 }
 
-                return null;
+                return ReadTmdbIds(value).FirstOrDefault() is var id && id > 0 ? id : null;
             }
+        }
+
+        // TMDb *movie* ids only. Fribb files these as {"movie": [id, ...]} - always an array, and a
+        // handful of entries list several (e.g. a compilation film split into parts on TMDb).
+        [JsonIgnore]
+        public IReadOnlyList<long> TmdbMovieIds
+        {
+            get
+            {
+                if (themoviedb_id is { ValueKind: JsonValueKind.Object } value &&
+                    value.TryGetProperty("movie", out var movie))
+                {
+                    return ReadTmdbIds(movie);
+                }
+
+                return Array.Empty<long>();
+            }
+        }
+
+        // Fribb has shipped TMDb ids as a bare number, a numeric string, and (current format for
+        // movies) an array of numbers; accept all three instead of throwing on the array.
+        private static List<long> ReadTmdbIds(JsonElement value)
+        {
+            var ids = new List<long>();
+            switch (value.ValueKind)
+            {
+                case JsonValueKind.Number when value.TryGetInt64(out var number):
+                    ids.Add(number);
+                    break;
+                case JsonValueKind.String when long.TryParse(value.GetString(), out var parsed):
+                    ids.Add(parsed);
+                    break;
+                case JsonValueKind.Array:
+                    foreach (var element in value.EnumerateArray())
+                    {
+                        ids.AddRange(ReadTmdbIds(element));
+                    }
+
+                    break;
+            }
+
+            return ids;
         }
 
         [JsonNumberHandling(JsonNumberHandling.AllowReadingFromString)]
