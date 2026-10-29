@@ -74,6 +74,42 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
         // ISO 3166 code of the production country (JP, CN, KR, TW) - decides the "original" cast language.
         [JsonPropertyName("countryOfOrigin")]
         public string? CountryOfOrigin { get; set; }
+
+        // Main animation studios only (isMain: true), e.g. "khara" - the fallback when MAL/Jikan is down.
+        [JsonPropertyName("studios")]
+        public AniListStudioConnection? Studios { get; set; }
+
+        // Fallback tags when AniDB has none for a title (see ApiService.GetAniListTags).
+        [JsonPropertyName("tags")]
+        public List<AniListTag>? Tags { get; set; }
+    }
+
+    public class AniListTag
+    {
+        [JsonPropertyName("name")]
+        public string? Name { get; set; }
+
+        // How relevant AniList's users rate the tag for this title, 0-100.
+        [JsonPropertyName("rank")]
+        public int? Rank { get; set; }
+
+        [JsonPropertyName("isMediaSpoiler")]
+        public bool IsMediaSpoiler { get; set; }
+
+        [JsonPropertyName("isGeneralSpoiler")]
+        public bool IsGeneralSpoiler { get; set; }
+    }
+
+    public class AniListStudioConnection
+    {
+        [JsonPropertyName("nodes")]
+        public List<AniListStudio>? Nodes { get; set; }
+    }
+
+    public class AniListStudio
+    {
+        [JsonPropertyName("name")]
+        public string? Name { get; set; }
     }
 
     public class AniListCoverImage

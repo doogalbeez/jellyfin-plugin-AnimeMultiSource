@@ -13,46 +13,44 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
         private readonly HttpClient _httpClient;
         private readonly ILogger _logger;
         private readonly JsonSerializerOptions _jsonOptions;
-        private readonly string _personalApiKey;
 
         private const string BaseUrl = "https://webservice.fanart.tv/v3/tv";
 
-        public FanartClient(HttpClient httpClient, ILogger logger, string personalApiKey)
+        public FanartClient(HttpClient httpClient, ILogger logger)
         {
             _httpClient = httpClient;
             _logger = logger;
-            _personalApiKey = personalApiKey ?? string.Empty;
             _jsonOptions = new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
             };
         }
 
-        public async Task<FanartTvResponse?> GetAsync(string tvdbId, CancellationToken cancellationToken)
+        public async Task<FanartTvResponse?> GetAsync(string tvdbId, string? personalApiKey, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(tvdbId))
             {
                 return null;
             }
 
-            var url = $"{BaseUrl}/{tvdbId}?api_key={_personalApiKey}";
-            var request = new HttpRequestMessage(HttpMethod.Get, url);
-
-            var response = await _httpClient.SendAsync(request, cancellationToken);
-            if (!response.IsSuccessStatusCode)
-            {
-                _logger.LogDebug("Fanart.tv request failed for tvdb {TvdbId} with status {Status}", tvdbId, response.StatusCode);
-                return null;
-            }
+            var url = $"{BaseUrl}/{tvdbId}?api_key={Uri.EscapeDataString(personalApiKey ?? string.Empty)}";
 
             try
             {
+                // A network error here used to throw out of GetImages and lose the TVDB images too.
+                using var response = await _httpClient.GetAsync(url, cancellationToken);
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogDebug("Fanart.tv request failed for tvdb {TvdbId} with status {Status}", tvdbId, response.StatusCode);
+                    return null;
+                }
+
                 var json = await response.Content.ReadAsStringAsync();
                 return JsonSerializer.Deserialize<FanartTvResponse>(json, _jsonOptions);
             }
-            catch (Exception ex)
+            catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
             {
-                _logger.LogError(ex, "Failed to parse Fanart.tv response for tvdb {TvdbId}", tvdbId);
+                _logger.LogWarning(ex, "Fanart.tv request failed for tvdb {TvdbId}", tvdbId);
                 return null;
             }
         }

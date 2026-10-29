@@ -20,16 +20,10 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
 
         public TvdbEpisodeImageProvider(ILogger<TvdbEpisodeImageProvider> logger)
         {
+            logger = PluginLog.Wrap(logger);
             _logger = logger;
 
-            var handler = new HttpClientHandler
-            {
-                AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
-            };
-
-            var httpClient = new HttpClient(handler);
-            httpClient.DefaultRequestHeaders.Add("User-Agent", "Jellyfin-AnimeMultiSource-Plugin/1.0");
-
+            var httpClient = ApiService.SharedHttpClient;
             _tvdbClient = new TvdbApiClient(httpClient, logger, Constants.TvdbProjectApiKey);
         }
 

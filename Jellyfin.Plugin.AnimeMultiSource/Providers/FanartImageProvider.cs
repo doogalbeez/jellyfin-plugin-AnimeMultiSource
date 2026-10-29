@@ -22,31 +22,32 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
         private readonly ILogger<FanartImageProvider> _logger;
         private readonly FanartClient _fanartClient;
         private readonly TvdbApiClient _tvdbClient;
-        private readonly PluginConfiguration _config;
         private readonly HttpClient _httpClient;
-        private readonly HashSet<string> _fanartLanguageOverride;
-        private readonly bool _hasLanguageOverride;
+        // Re-read on every GetImages: this provider lives for the whole server run, so settings
+        // captured at startup (e.g. a Fanart key typed in after install) were ignored until a restart.
+        private PluginConfiguration _config;
+        private HashSet<string> _fanartLanguageOverride = new(StringComparer.OrdinalIgnoreCase);
+        private bool _hasLanguageOverride;
         private readonly ConcurrentDictionary<string, (int Width, int Height)> _fanartSizeCache = new(StringComparer.OrdinalIgnoreCase);
 
         public FanartImageProvider(ILogger<FanartImageProvider> logger)
         {
+            logger = PluginLog.Wrap(logger);
             _logger = logger;
             _config = Plugin.GetConfigurationSafe(_logger);
 
-            var handler = new HttpClientHandler
-            {
-                AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
-            };
-
-            var httpClient = new HttpClient(handler);
-            httpClient.DefaultRequestHeaders.Add("User-Agent", "Jellyfin-AnimeMultiSource-Plugin/1.0");
-
+            var httpClient = ApiService.SharedHttpClient;
             _httpClient = httpClient;
-            _fanartClient = new FanartClient(httpClient, logger, _config.PersonalApiKey ?? string.Empty);
+            _fanartClient = new FanartClient(httpClient, logger);
             _tvdbClient = new TvdbApiClient(httpClient, logger, Constants.TvdbProjectApiKey);
-            _fanartLanguageOverride = ParseFanartLanguages(_config.FanartLanguages);
-            _hasLanguageOverride = !string.IsNullOrWhiteSpace(_config.FanartLanguages)
-                && !_config.FanartLanguages.Equals("all", StringComparison.OrdinalIgnoreCase)
+        }
+
+        private void ApplyConfig(PluginConfiguration config)
+        {
+            _config = config;
+            _fanartLanguageOverride = ParseFanartLanguages(config.FanartLanguages);
+            _hasLanguageOverride = !string.IsNullOrWhiteSpace(config.FanartLanguages)
+                && !config.FanartLanguages.Equals("all", StringComparison.OrdinalIgnoreCase)
                 && _fanartLanguageOverride.Count > 0;
         }
 
@@ -69,8 +70,8 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
 
         public async Task<IEnumerable<RemoteImageInfo>> GetImages(BaseItem item, CancellationToken cancellationToken)
         {
-            var version = typeof(FanartImageProvider).Assembly.GetName().Version?.ToString() ?? "unknown";
-            _logger.LogInformation("{Provider} v{Version} GetImages for {Name} ({ItemType})", Name, version, item.Name, item.GetType().Name);
+            ApplyConfig(Plugin.GetConfigurationSafe(_logger));
+            _logger.LogDebug("{Provider} GetImages for {Name} ({ItemType})", Name, item.Name, item.GetType().Name);
 
             var tvdbId = GetTvdbId(item);
             if (string.IsNullOrWhiteSpace(tvdbId))
@@ -99,7 +100,7 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
             FanartTvResponse? fanart = null;
             if (!string.IsNullOrWhiteSpace(_config.PersonalApiKey))
             {
-                fanart = await _fanartClient.GetAsync(tvdbId, cancellationToken);
+                fanart = await _fanartClient.GetAsync(tvdbId, _config.PersonalApiKey, cancellationToken);
             }
 
             var images = new List<RemoteImageInfo>();
@@ -142,7 +143,7 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
                 _logger.LogInformation("{Message}", (object)targetLog);
 
                 var fanartBackdrops = fanart != null
-                    ? FilterBackdrops(await ToImageInfosAsync(fanart.ShowBackgrounds, ImageType.Backdrop, cancellationToken))
+                    ? FilterBackdrops(await ToImageInfosAsync(fanart.ShowBackgrounds, ImageType.Backdrop, cancellationToken, probeSize: true))
                     : new List<RemoteImageInfo>();
 
                 var tvdbBackdrops = GetTvdbBackdrops(tvdbSeriesId, tvdbSeries)
@@ -221,7 +222,9 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
             return SeasonNumberParser.TryParse(name);
         }
 
-        private async Task<List<RemoteImageInfo>> ToImageInfosAsync(IEnumerable<FanartImage> source, ImageType type, CancellationToken cancellationToken)
+        // Only backdrops are filtered by size, so only they are probed; probing every poster, logo and
+        // thumb one by one added dozens of requests per show.
+        private async Task<List<RemoteImageInfo>> ToImageInfosAsync(IEnumerable<FanartImage> source, ImageType type, CancellationToken cancellationToken, bool probeSize = false)
         {
             var list = new List<RemoteImageInfo>();
             foreach (var image in FilterByLanguage(source))
@@ -239,7 +242,7 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
                     Language = NormalizeLanguage(image.Language)
                 };
 
-                var size = await TryGetImageSizeAsync(image.Url!, cancellationToken);
+                var size = probeSize ? await TryGetImageSizeAsync(image.Url!, cancellationToken) : null;
                 if (size.HasValue)
                 {
                     info.Width = size.Value.Width;

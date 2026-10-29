@@ -11,7 +11,8 @@ Remote anime metadata, tags, artwork and people for Jellyfin, combined from mult
 ## What's new in this fork
 - **Jellyfin 12.2 support:** rebuilt for .NET 10 and the Jellyfin 12.2 packages, and tested end to end on a 12.2.0 server (series, seasons, episodes, movies, scheduled tasks).
 - **Movies:** anime films in a *Movies* library now get the same metadata as series. See [Movies](#movies).
-- **"Fill in missing anime metadata" task:** refreshes every show and movie that hasn't been processed yet, with a dashboard progress bar and a summary in *Dashboard → Activity*.
+- **Sync settings:** auto sync every 3 hours to a week (or off) plus a **Sync now** button. Fills in shows and movies that haven't been processed yet, refreshes tags of recently aired shows and updates upcoming episodes, with a progress bar and a summary in *Dashboard → Activity*. See [Sync](#sync).
+- **Badge:** an *Anime Multi Source* tag on every show and movie the plugin updates. See [Badge](#badge).
 - **Progress in the log:** one line per show or movie, with what was found, how long it took, and running totals.
 - **Settings in the sidebar:** *Anime Multi Source* is listed under *Plugins* in the dashboard's left sidebar.
 - **Cast language:** keeps the original-language voice cast and only adds a dub's cast when your files have that audio track. See [Cast language](#cast-language).
@@ -21,7 +22,7 @@ Remote anime metadata, tags, artwork and people for Jellyfin, combined from mult
 
 ## Features
 - Multi-source IDs: resolves AniList, AniDB, MAL, TVDB, TMDB, IMDb, Kitsu, AniSearch via Fribb mappings plus optional `.plexmatch` overrides. Fills gaps in Fribb's data from `manami-project/anime-offline-database` and (optionally) AnimeSchedule.net, for titles Fribb hasn't fully cross-referenced yet.
-- Metadata: titles, descriptions, genres, studios, scores, relations/seasons, people (voice actors/staff), tags (AniDB) — for series, seasons, episodes and movies.
+- Metadata: titles, descriptions, genres, studios, scores, relations/seasons, people (voice actors/staff), tags (AniDB, with AniList's relevant non-spoiler tags as a fallback when AniDB has none) — for series, seasons, episodes and movies.
 - Images: Fanart.tv + TVDB backdrops, posters, logos and season art, with quality filters and limits.
 - Upcoming episodes: optional AnimeSchedule.net integration populates Jellyfin's built-in "Upcoming" tab with real sub/dub-aware air dates. See [AnimeSchedule.net](#animeschedulenet-upcoming-episodes).
 - Localized libraries: season folders named in other languages (e.g. French "Saison 1") resolve correctly; numbered season titles and TVDB episode translations follow Jellyfin's configured display language.
@@ -71,18 +72,30 @@ Open **Dashboard → Plugins → Anime Multi Source** (also in the dashboard sid
 
 ### Movies
 Tick **AnimeMultiSource** under **Metadata downloaders (Movies)** in your movie library. A film is identified in this order:
-1. An AniList or MAL id already on the item (e.g. typed into *Edit metadata → External IDs*).
+1. An AniList or MAL id already on the item (e.g. typed into *Edit metadata → External IDs*, or read from the `movie.nfo` Jellyfin saved earlier). With **Metadata savers → Nfo** ticked in the library, matches are written to `movie.nfo` and survive a database rebuild or a move to a new server.
 2. A `.plexmatch` in the movie's folder (`anilistid`, `malid`, `tmdbid` or `imdbid`).
 3. A TMDb or IMDb id on the item — from folder tags like `[tmdbid-916224]`, a Radarr `movie.nfo`, or TheMovieDb ranked above this plugin — matched against Fribb's anime **movie** entries.
-4. As a last resort, a strict AniList title search: exact title and release year within one. Turn it off with **Identify movies by title when they have no IDs** if your library mixes anime and live-action films.
+4. As a last resort, a strict AniList title search (movies, OVAs, specials and ONAs): exact title and release year within one. Turn it off with **Identify movies by title when they have no IDs** if your library mixes anime and live-action films.
 
 Non-anime films are left untouched for TheMovieDb. *Identify* on a movie also lists AniList results. Runtime comes from the file itself (Jellyfin 12 always uses the real file length for videos).
 
 ### Cast language
 **Voice actors to add to Cast & Crew** (default: *Original language + dubs matching the file's audio tracks*): the original cast comes from the anime's country of origin (Japanese for Japanese anime). A dub's cast, e.g. English, is only added when an episode or movie file has an audio track in that language, and is labelled e.g. "Frieren (English dub)". Other options: *Original language only*, or *Every dub*. A new series' episodes are read after the series metadata, so its dub cast appears from the next refresh.
 
-### Fill in missing anime metadata
-**Dashboard → Scheduled Tasks → Anime Multi Source → Fill in missing anime metadata** (manual by default) refreshes, one at a time with a progress bar, every show and movie in a library that uses this plugin but doesn't have its AniList/AniDB/MAL ids yet. The log shows `[3/57] Title: filled in (6.2s), about 4m left`, and a summary — including titles with no anime match — goes to **Dashboard → Activity**.
+### Sync
+**Dashboard → Plugins → Anime Multi Source → Sync** controls the plugin's background work:
+- **Auto sync:** Off, or every 3 / 6 / 12 (default) / 24 hours, 3 days or a week. Longer intervals mean fewer API calls.
+- **Sync now:** runs a sync straight away (also under **Dashboard → Scheduled Tasks → Anime Multi Source → Sync anime metadata now**).
+
+A sync is built for big libraries: it never refreshes everything, only what needs it, one title at a time:
+1. Shows and movies in a library that uses this plugin but have no AniList/AniDB/MAL ids yet. Titles with no anime match are only retried by **Sync now**, so a library that mixes anime and live-action films isn't re-refreshed on every run.
+2. Series whose last episode arrived about a week, then about 3 months, ago get a refresh, because AniDB/MAL tags fill in slowly. A new season starts this over. Films get the same two refreshes, counted from the day they were added to the library, if they were released in the last 3 years (a new film often has only general AniDB tags at first; older films are skipped so importing a back catalogue doesn't trigger thousands of refreshes).
+3. AnimeSchedule.net upcoming episodes for every mapped series (when a key is set). Placeholder `TBA` episodes are removed once they air or the real file arrives.
+
+One failing title never stops the run. The log shows `[3/57] Title: filled in (6.2s), about 4m left`, and a summary, including titles with no anime match, goes to **Dashboard → Activity**. The **Auto sync anime metadata** task wakes up hourly and only does work when the chosen interval has passed.
+
+### Badge
+Every show and movie the plugin updates gets the tag **Anime Multi Source**, listed under *Tags* on its page and usable as a library filter, so you can see at a glance what it has handled. Turn it off under **Sync**; existing badges are removed on the next sync. (Jellyfin's web client has no place for a plugin to add a logo next to the rating icons, so the badge is a tag.)
 
 Every series/movie refresh also logs one line such as:
 ```
@@ -96,16 +109,14 @@ Optional. Adds mapped anime to Jellyfin's built-in **Upcoming** tab (`Shows → 
 2. Enter it under **Dashboard → Plugins → Anime Multi Source → AnimeSchedule.net**, and choose a schedule: **Sub**, **Dub**, or **Combined** (prefers dub, falls back to sub per episode if no dub exists).
 3. Leave the key blank to disable the feature entirely — nothing else changes.
 
-Upcoming episodes refresh whenever a series is refreshed, and on a scheduled task (**Refresh AnimeSchedule Upcoming Episodes**, every 8 hours by default), so schedule delays/reschedules between refreshes still get picked up. Episode titles show as `TBA` — AnimeSchedule is a scheduling calendar, not an episode database, so no title is ever made up.
-
-### Refresh Recently-Aired Anime Tags
-A newly aired anime's AniDB/MAL tags and genres are often thin at first. This scheduled task (runs daily) automatically re-checks a series' metadata about a week, then again about 3 months, after its last episode was added, so tags improve on their own.
+Upcoming episodes refresh whenever a series is refreshed, and on every [sync](#sync), so schedule delays/reschedules between refreshes still get picked up. Episode titles show as `TBA` — AnimeSchedule is a scheduling calendar, not an episode database, so no title is ever made up.
 
 ## Rate limits & caching
 - AniList: spaced to ~30 req/min; cached 5 days; persisted on disk.
-- AniDB: soft daily cap with slow mode; ban/limit responses trigger backoff; cached 5 days; persisted on disk.
+- AniDB: at least 2 s between requests, shared by every part of the plugin; soft daily cap with slow mode; ban/limit responses trigger backoff; cached 5 days; persisted on disk.
 - Jikan/MAL: spaced (~2.5 s) with retry-after; 15 s timeout; paused for 10 minutes after 3 failures in a row.
-- Persistent cache file: `provider-cache.json` under the plugin data folder. Entries older than 5 days are discarded automatically.
+- Persistent cache file: `provider-cache.json` under the plugin data folder, saved at most once a minute and written safely (a crash never leaves a broken file). Entries older than 5 days are discarded automatically.
+- Fribb mapping list: refreshed every 6 hours; a copy is kept in the plugin data folder, so a GitHub outage or a restart without internet doesn't stop metadata.
 
 ## Usage notes
 - If AniDB is temporarily paused, tags are skipped for that window but metadata still completes; caching prevents repeat hits after the first successful fetch.
@@ -119,16 +130,25 @@ A newly aired anime's AniDB/MAL tags and genres are often thin at first. This sc
 ## Troubleshooting
 - Nothing happening for a show? Check it has a `.plexmatch` in its series folder and that AnimeMultiSource is ticked in the library settings. The log says `no plexmatch file` when it's missing.
 - No tags? Check the logs for AniDB backoff messages; waits clear automatically.
+- Log says `No AniDB tags for <title>; using N AniList tags instead`, but the AniDB page shows tags? Newer titles often only have general category tags on AniDB yet (e.g. *shounen*, *manga*, *fantasy*, *Japanese production*), and the plugin filters those out because Genres already cover them, so AniList's tags are used. Nothing is blocked: the plugin uses AniDB's data API, not the website, so the website's browser check doesn't apply. Films released in the last 3 years are refreshed automatically about a week and about 3 months after being added; for anything else, refresh the item once AniDB users have added specific tags (AniDB data is cached for 5 days).
 - Fanart/TVDB images missing? Verify keys and that the item has a TVDB ID.
+- Movie has the *Anime Multi Source* badge but TheMovieDb's title and overview? Jellyfin takes each field from the first metadata downloader that has it (tags are combined from all), so move **AnimeMultiSource** to the top of the library's *Metadata downloaders (Movies)*, then refresh the library with **Replace all metadata**. `tools/check_movies.py` in the dev repo checks the order and lists movies without anime ids.
 - How do I know it worked? Look for AniDB/Kitsu/AniSearch/MAL links under the item's External IDs, and a long list of anime tags.
-- Slow first scan on huge libraries is expected; later scans benefit from caches. Run **Fill in missing anime metadata** to catch anything skipped.
+- Jellyfin unreachable in Docker (e.g. on Unraid) although the container shows *healthy*, and the log is full of `Resource temporarily unavailable (<host>:443)`? The container has lost its network: nothing can reach it and it can't look anything up, so every metadata lookup fails too. This is Docker, not Jellyfin or this plugin. Check it with:
+  ```
+  docker inspect -f '{{json .NetworkSettings.Ports}}' <container>
+  docker exec <container> getent hosts api.anidb.net || echo "no DNS inside the container"
+  ```
+  `{}` (no published ports) plus no DNS confirms it. Restarting the Docker service usually fixes it without a reboot (Unraid: *Settings → Docker → Enable Docker: No → Apply*, then *Yes → Apply*). Afterwards press **Sync now** to catch up on anything missed while it was offline.
+- Slow first scan on huge libraries is expected; later scans benefit from caches. Press **Sync now** to catch anything skipped.
 
 ## Revision history
 See [CHANGELOG.md](CHANGELOG.md) for full details.
 
 | Version | Date | By | Highlights |
 |---|---|---|---|
-| **1.0.7.0** (fork) | 2026-10 | [doogalbeez](https://github.com/doogalbeez) | Jellyfin 12.2 support, movie provider, "Fill in missing anime metadata" task, per-item progress log, sidebar link, cast language setting, Jikan fast-fail, TMDb/runtime/External ID fixes, new logo |
+| **1.0.8.0** (fork) | 2026-10-17 | [doogalbeez](https://github.com/doogalbeez) | Sync settings (auto interval, Sync now), "Anime Multi Source" badge, AniDB rate-limit and cache fixes for large libraries, season/tag/Fanart.tv/TVDB/upcoming-episode fixes |
+| 1.0.7.0 (fork) | 2026-10 | [doogalbeez](https://github.com/doogalbeez) | Jellyfin 12.2 support, movie provider, "Fill in missing anime metadata" task, per-item progress log, sidebar link, cast language setting, Jikan fast-fail, TMDb/runtime/External ID fixes, new logo |
 | 1.0.6.14 | 2026-08-10 | [webbster64](https://github.com/webbster64) | AnimeSchedule Upcoming fixes for multi-season anime, status fixes, "Refresh Recently-Aired Anime Tags" task |
 | 1.0.6.5 | 2026-08-10 | webbster64 | Self-healing stale plugin version folders, config recovery |
 | 1.0.6.4 | 2026-08-10 | webbster64 | AnimeSchedule virtual episodes persisted, "Refresh AnimeSchedule Upcoming Episodes" task |

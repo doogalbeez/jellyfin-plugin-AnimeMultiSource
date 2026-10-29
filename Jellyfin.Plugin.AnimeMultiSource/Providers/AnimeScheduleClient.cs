@@ -27,7 +27,8 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
         private static readonly ConcurrentDictionary<string, CacheEntry<List<TimetableEntry>>> TimetableCache = new();
         private static readonly object PersistentCacheLock = new();
         private static bool _persistentCacheLoaded;
-        private static string? _persistentCachePath;
+        private static DateTimeOffset _lastPersist = DateTimeOffset.MinValue;
+        private static readonly TimeSpan PersistInterval = TimeSpan.FromMinutes(1);
 
         private readonly HttpClient _httpClient;
         private readonly ILogger _logger;
@@ -229,6 +230,19 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
 
         private void PersistCacheToDiskSafe()
         {
+            // shortcut: saves at most once a minute (same as ApiService); a crash loses at most a minute
+            // of cached lookups, which are simply fetched again.
+            lock (PersistentCacheLock)
+            {
+                var now = DateTimeOffset.UtcNow;
+                if (now - _lastPersist < PersistInterval)
+                {
+                    return;
+                }
+
+                _lastPersist = now;
+            }
+
             try
             {
                 var snapshot = new CacheSnapshot
@@ -241,13 +255,7 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
                 var path = GetPersistentCachePath();
                 lock (PersistentCacheLock)
                 {
-                    var directory = Path.GetDirectoryName(path);
-                    if (!string.IsNullOrWhiteSpace(directory))
-                    {
-                        Directory.CreateDirectory(directory);
-                    }
-
-                    File.WriteAllText(path, JsonSerializer.Serialize(snapshot, _jsonOptions));
+                    PluginData.WriteAtomic(path, JsonSerializer.Serialize(snapshot, _jsonOptions));
                 }
             }
             catch (Exception ex)
@@ -256,43 +264,7 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
             }
         }
 
-        private string GetPersistentCachePath()
-        {
-            if (!string.IsNullOrWhiteSpace(_persistentCachePath))
-            {
-                return _persistentCachePath!;
-            }
-
-            lock (PersistentCacheLock)
-            {
-                if (!string.IsNullOrWhiteSpace(_persistentCachePath))
-                {
-                    return _persistentCachePath!;
-                }
-
-                string folder;
-                try
-                {
-                    var plugin = Plugin.Instance;
-                    var dataFolderProperty = plugin?.GetType().GetProperty("DataFolderPath");
-                    folder = dataFolderProperty?.GetValue(plugin) as string ?? string.Empty;
-                    if (string.IsNullOrWhiteSpace(folder))
-                    {
-                        throw new InvalidOperationException("DataFolderPath unavailable");
-                    }
-
-                    Directory.CreateDirectory(folder);
-                }
-                catch
-                {
-                    folder = Path.Combine(AppContext.BaseDirectory, "AnimeMultiSourceCache");
-                    Directory.CreateDirectory(folder);
-                }
-
-                _persistentCachePath = Path.Combine(folder, "animeschedule-cache.json");
-                return _persistentCachePath;
-            }
-        }
+        private static string GetPersistentCachePath() => PluginData.GetPath("animeschedule-cache.json");
 
         private sealed record CacheEntry<T>(DateTimeOffset CachedAt, T Data);
 

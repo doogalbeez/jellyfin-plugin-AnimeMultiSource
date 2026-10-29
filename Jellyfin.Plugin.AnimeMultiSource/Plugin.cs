@@ -22,6 +22,8 @@ namespace Jellyfin.Plugin.AnimeMultiSource
             : base(applicationPaths, xmlSerializer)
         {
             Instance = this;
+            PluginLog.Directory = applicationPaths.LogDirectoryPath;
+            logger = PluginLog.Wrap(logger);
             CleanupStaleVersionFolders(applicationPaths, logger);
         }
 

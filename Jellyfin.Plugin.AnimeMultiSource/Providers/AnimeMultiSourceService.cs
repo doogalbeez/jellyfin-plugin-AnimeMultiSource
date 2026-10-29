@@ -65,7 +65,6 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
         private readonly PlexMatchParser _plexMatchParser;
         private readonly AnimeListMapper _animeListMapper;
         private readonly ApiService _apiService;
-        private readonly TagFilterService _tagFilterService;
         private readonly System.Net.Http.HttpClient _httpClient;
         private static readonly HashSet<long> _keepAniListMappingIds = new()
         {
@@ -94,19 +93,6 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
             21175,  // Dragon Ball Super
             170083  // Dragon Ball Daima
         };
-        private static readonly List<AnimeMapping> _manualMappings = new()
-        {
-            // Fribb missing TVDB/IMDb: True Beauty (2024)
-            new AnimeMapping
-            {
-                tvdb_id = 442363,
-                imdb_id = ["tt33054444"],
-                anilist_id = 152184,
-                mal_id = 57192,
-                type = "ONA"
-            }
-        };
-
         public static bool ShouldDeferSeasonToTvdb(long baseAniListId, int seasonNumber)
         {
             // Defer all seasons for specified AniList IDs to avoid bad AniList chains/names.
@@ -117,15 +103,8 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
         {
             _logger = logger;
             _plexMatchParser = new PlexMatchParser(logger);
-            _tagFilterService = new TagFilterService();
-            
-            // Create HttpClient with automatic decompression
-            var httpClientHandler = new System.Net.Http.HttpClientHandler
-            {
-                AutomaticDecompression = System.Net.DecompressionMethods.GZip | System.Net.DecompressionMethods.Deflate
-            };
-            
-            var httpClient = new System.Net.Http.HttpClient(httpClientHandler);
+
+            var httpClient = ApiService.SharedHttpClient;
             _httpClient = httpClient;
             _animeListMapper = new AnimeListMapper(httpClient, logger);
             _apiService = new ApiService(httpClient, logger);
@@ -136,7 +115,7 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
         public async Task<AnimeMetadata?> GetMetadataForSeries(SeriesInfo info, Configuration.PluginConfiguration config, IReadOnlyCollection<string>? audioLanguages = null)
         {
             var callId = Interlocked.Increment(ref _serviceCallCount);
-            _logger.LogInformation("=== SERVICE CALL #{CallId} for: {Name} ===", callId, info.Name);
+            _logger.LogDebug("=== SERVICE CALL #{CallId} for: {Name} ===", callId, info.Name);
             
             var seriesPath = info.Path;
 
@@ -144,9 +123,7 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
             var plexMatchPath = Path.Combine(seriesPath, Constants.PlexMatchFileName);
             if (!File.Exists(plexMatchPath))
             {
-                _logger.LogWarning("***********************");
-                _logger.LogWarning("* no plexmatch file  *");
-                _logger.LogWarning("***********************");
+                _logger.LogWarning("AnimeMultiSource: no plexmatch file at {PlexMatchPath}", plexMatchPath);
                 return null;
             }
 
@@ -162,40 +139,7 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
             // Ensure anime lists are loaded
             await _animeListMapper.LoadAnimeListsAsync();
 
-            // Find mapping
-            AnimeMapping? mapping = null;
-            if (!string.IsNullOrEmpty(plexMatchData.TvdbId))
-            {
-                mapping = _manualMappings.FirstOrDefault(m => m.TvdbId.HasValue && m.TvdbId.Value.ToString() == plexMatchData.TvdbId)
-                    ?? _animeListMapper.GetMappingByTvdbId(plexMatchData.TvdbId);
-            }
-
-            if (mapping == null && !string.IsNullOrEmpty(plexMatchData.ImdbId))
-            {
-                mapping = _manualMappings.FirstOrDefault(m =>
-                    m.imdb_id.Any(id =>
-                        string.Equals(id, plexMatchData.ImdbId, StringComparison.OrdinalIgnoreCase)))
-                    ?? _animeListMapper.GetMappingByImdbId(plexMatchData.ImdbId);
-            }
-
-            // Direct AniList/MAL anchor: lets .plexmatch identify titles Fribb hasn't
-            // cross-referenced to a TVDB/IMDb id yet (e.g. brand-new simulcasts).
-            if (mapping == null && plexMatchData.AniListId.HasValue)
-            {
-                mapping = _animeListMapper.GetMappingByAniListId(plexMatchData.AniListId.Value)
-                    ?? new AnimeMapping { anilist_id = plexMatchData.AniListId.Value };
-                _logger.LogInformation("Resolved series '{Title}' via .plexmatch anilistid {AniListId} (no TVDB/IMDb id needed)",
-                    plexMatchData.Title, plexMatchData.AniListId);
-            }
-
-            if (mapping == null && plexMatchData.MalId.HasValue)
-            {
-                mapping = _animeListMapper.GetMappingByMalId(plexMatchData.MalId.Value)
-                    ?? new AnimeMapping { mal_id = plexMatchData.MalId.Value };
-                _logger.LogInformation("Resolved series '{Title}' via .plexmatch malid {MalId} (no TVDB/IMDb id needed)",
-                    plexMatchData.Title, plexMatchData.MalId);
-            }
-
+            var mapping = _animeListMapper.FindMapping(plexMatchData);
             if (mapping == null)
             {
                 _logger.LogWarning("No mapping found for series '{Title}'", plexMatchData.Title);
@@ -357,7 +301,7 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
                 jikanData = await _apiService.GetJikanAnimeAsync(effectiveMalId.Value);
             }
 
-            _logger.LogInformation("=== SERVICE COMPLETED CALL #{CallId} ===", callId);
+            _logger.LogDebug("=== SERVICE COMPLETED CALL #{CallId} ===", callId);
 
             // Create combined metadata
             return await CreateCombinedMetadata(plexMatchData, mapping, jikanData, aniListData, rootAniListId, effectiveMalId, config, info.MetadataLanguage, audioLanguages);
@@ -366,7 +310,7 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
         public async Task<AnimeMetadata?> GetMetadataForMovie(MovieInfo info, Configuration.PluginConfiguration config, IReadOnlyCollection<string>? audioLanguages = null)
         {
             var callId = Interlocked.Increment(ref _serviceCallCount);
-            _logger.LogInformation("=== MOVIE SERVICE CALL #{CallId} for: {Name} ({Year}) ===", callId, info.Name, info.Year);
+            _logger.LogDebug("=== MOVIE SERVICE CALL #{CallId} for: {Name} ({Year}) ===", callId, info.Name, info.Year);
 
             await _animeListMapper.LoadAnimeListsAsync();
 
@@ -463,7 +407,7 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
             }
 
             var metadata = await CreateMovieMetadata(info, mapping, jikanData, aniListData, effectiveMalId, config, audioLanguages);
-            _logger.LogInformation("=== MOVIE SERVICE COMPLETED CALL #{CallId} ===", callId);
+            _logger.LogDebug("=== MOVIE SERVICE COMPLETED CALL #{CallId} ===", callId);
             return metadata;
         }
 
@@ -514,13 +458,13 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
             metadata.Overview = primaryJikan?.Synopsis;
             if (string.IsNullOrWhiteSpace(metadata.Overview) && !string.IsNullOrWhiteSpace(aniListData?.Description))
             {
-                metadata.Overview = StripAnimeScheduleHtml(aniListData!.Description!);
+                metadata.Overview = StripHtml(aniListData!.Description!);
             }
 
             metadata.Runtime = GetConfiguredRuntime(primaryJikan, aniListData, config);
             metadata.ParentalRating = primaryJikan?.Rating;
             metadata.Genres = _apiService.CombineGenres(primaryJikan, aniListData, GetApprovedGenres(config));
-            metadata.Studios = _apiService.GetStudios(primaryJikan);
+            metadata.Studios = _apiService.GetStudios(primaryJikan, aniListData);
 
             if (aniListId.HasValue || effectiveMalId.HasValue)
             {
@@ -540,7 +484,7 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
             }
 
             metadata.Tags = config.EnableAniDbTags
-                ? await GetAggregatedAniDbTagsAsync(mapping, null, config)
+                ? WithAniListTagFallback(await GetAggregatedAniDbTagsAsync(mapping, null, config), aniListData, metadata.Title)
                 : new List<string>();
 
             _logger.LogInformation("Populated movie metadata for {Title} with {GenreCount} genres, {StudioCount} studios, {PeopleCount} people, {TagCount} tags",
@@ -609,7 +553,7 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
             }
 
             var cleaned = Regex.Replace(name, @"\[[^\]]*\]|\{[^}]*\}", " ");
-            cleaned = Regex.Replace(cleaned, @"\(\s*(19|20)\d{2}\s*\)\s*$", " ");
+            cleaned = Regex.Replace(cleaned, @"(\(\s*(19|20)\d{2}\s*\)\s*)+$", " ");
             return Regex.Replace(cleaned, @"\s+", " ").Trim();
         }
 
@@ -768,19 +712,20 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
             metadata.CommunityRating = primaryJikan?.Score ?? (aniListPrimary?.AverageScore / 10.0);
 
             // Overview - prefer Jikan, fallback to AniList, then AnimeSchedule.net (when configured)
-            metadata.Overview = primaryJikan?.Synopsis ?? aniListPrimary?.Description;
+            metadata.Overview = primaryJikan?.Synopsis
+                ?? (string.IsNullOrWhiteSpace(aniListPrimary?.Description) ? null : StripHtml(aniListPrimary!.Description!));
             if (string.IsNullOrWhiteSpace(metadata.Overview) && rootAniListId.HasValue)
             {
                 var scheduleDetail = await GetAnimeScheduleDetailAsync(config, rootAniListId.Value);
                 if (!string.IsNullOrWhiteSpace(scheduleDetail?.Description))
                 {
-                    metadata.Overview = StripAnimeScheduleHtml(scheduleDetail!.Description!);
+                    metadata.Overview = StripHtml(scheduleDetail!.Description!);
                 }
             }
 
-            // Dates from Jikan
-            metadata.ReleaseDate = primaryJikan?.Aired?.From;
-            metadata.EndDate = primaryJikan?.Aired?.To;
+            // Dates from Jikan, AniList when Jikan has none (e.g. paused during a MAL outage)
+            metadata.ReleaseDate = primaryJikan?.Aired?.From ?? ToDateTime(aniListPrimary?.StartDate);
+            metadata.EndDate = primaryJikan?.Aired?.To ?? ToDateTime(aniListPrimary?.EndDate);
 
             // Runtime based on configuration
             metadata.Runtime = GetConfiguredRuntime(primaryJikan, aniListData, config);
@@ -793,7 +738,7 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
             metadata.Genres = _apiService.CombineGenres(primaryJikan, aniListData, approvedGenres);
 
             // Studios from Jikan
-            metadata.Studios = _apiService.GetStudios(jikanData);
+            metadata.Studios = _apiService.GetStudios(jikanData, aniListPrimary);
 
             // Fetch People data asynchronously
             if (rootAniListId.HasValue || mapping.mal_id.HasValue)
@@ -831,7 +776,7 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
             // Fetch tags from AniDB if enabled and we have an AniDB ID
             if (config.EnableAniDbTags)
             {
-                metadata.Tags = await GetAggregatedAniDbTagsAsync(mapping, metadata.Seasons, config);
+                metadata.Tags = WithAniListTagFallback(await GetAggregatedAniDbTagsAsync(mapping, metadata.Seasons, config), aniListPrimary, metadata.Title);
             }
             else
             {
@@ -894,9 +839,24 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
                 }
             }
 
-            var filtered = _tagFilterService.FilterTags(tagBuckets);
-            _tagFilterService.LogFilteredTags(_logger, tagBuckets, filtered);
-            return filtered;
+            // Each bucket was already filtered by GetAniDbTagsAsync; only the merge can repeat a tag.
+            return tagBuckets.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+        }
+
+        private List<string> WithAniListTagFallback(List<string> aniDbTags, AniListMedia? aniListData, string? title)
+        {
+            if (aniDbTags.Count > 0)
+            {
+                return aniDbTags;
+            }
+
+            var aniListTags = _apiService.GetAniListTags(aniListData?.Tags);
+            if (aniListTags.Count > 0)
+            {
+                _logger.LogInformation("No AniDB tags for {Title}; using {Count} AniList tags instead", title, aniListTags.Count);
+            }
+
+            return aniListTags;
         }
 
         private async Task<long?> FindBestPrequelRootAsync(long startAniListId, int targetYear)
@@ -1058,7 +1018,8 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
             }
         }
 
-        private static string StripAnimeScheduleHtml(string input)
+        // AniList and AnimeSchedule descriptions are HTML; TV clients show the tags as raw text.
+        internal static string StripHtml(string input)
         {
             var text = Regex.Replace(input, @"<br\s*/?>", "\n", RegexOptions.IgnoreCase);
             text = Regex.Replace(text, "<.*?>", string.Empty);
@@ -1078,37 +1039,14 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
 
         private int? GetConfiguredRuntime(JikanAnime? jikanData, AniListMedia? aniListData, Configuration.PluginConfiguration config)
         {
-            if (config.RuntimeDataSource == Configuration.RuntimeDataSourceType.Anilist)
+            // Preferred source first, then the other one (Jikan is often paused during MAL outages).
+            if (config.RuntimeDataSource == Configuration.RuntimeDataSourceType.Anilist && aniListData?.Duration.HasValue == true)
             {
-                // Prefer AniList duration
-                if (aniListData?.Duration.HasValue == true)
-                    return aniListData.Duration;
+                return aniListData.Duration;
             }
 
-            // Fallback to Jikan
-            var runtimeStr = _apiService.ParseJikanDuration(jikanData?.Duration);
-            if (int.TryParse(runtimeStr, out int runtime))
-            {
-                return runtime;
-            }
-
-            // If preferred source failed, try the other
-            if (config.RuntimeDataSource == Configuration.RuntimeDataSourceType.Jikan)
-            {
-                // We already tried Jikan, return null
-                return null;
-            }
-            else
-            {
-                // Try Jikan as fallback
-                runtimeStr = _apiService.ParseJikanDuration(jikanData?.Duration);
-                if (int.TryParse(runtimeStr, out runtime))
-                {
-                    return runtime;
-                }
-            }
-
-            return null;
+            var jikanRuntime = int.TryParse(_apiService.ParseJikanDuration(jikanData?.Duration), out var runtime) ? runtime : (int?)null;
+            return jikanRuntime ?? aniListData?.Duration;
         }
 
         private List<string> GetApprovedGenres(Configuration.PluginConfiguration config)

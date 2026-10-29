@@ -11,6 +11,43 @@
             <div class="content-primary">
                 <form id="AnimeMultiSourceConfigurationForm">
 
+                    <!-- Sync -->
+                    <h2>Sync</h2>
+                    <div class="selectContainer">
+                        <label class="selectLabel" for="syncIntervalHours">Auto sync</label>
+                        <select is="emby-select" id="syncIntervalHours" name="syncIntervalHours" class="emby-select-withcolor emby-select">
+                            <option value="0">Off</option>
+                            <option value="3">Every 3 hours</option>
+                            <option value="6">Every 6 hours</option>
+                            <option value="12">Every 12 hours (recommended)</option>
+                            <option value="24">Every 24 hours</option>
+                            <option value="72">Every 3 days</option>
+                            <option value="168">Every week</option>
+                        </select>
+                        <div class="fieldDescription">A sync fills in shows and movies that have no anime metadata yet, refreshes tags of shows whose last episode arrived, and of recent films added, about a week or 3 months ago, and updates AnimeSchedule.net upcoming episodes. It only touches what needs it, one title at a time, so it stays gentle on the APIs even for very large libraries. Titles with no anime match are only retried by Sync now. Longer intervals mean fewer API calls; upcoming air dates also update whenever a show is refreshed.</div>
+                    </div>
+                    <div class="inputContainer">
+                        <button is="emby-button" type="button" id="syncNow" class="raised emby-button">
+                            <span>Sync now</span>
+                        </button>
+                        <div class="fieldDescription" id="syncNowStatus">Runs a sync right away, including titles that had no anime match before. Progress shows under Dashboard &gt; Scheduled Tasks, and a summary goes to Dashboard &gt; Activity.</div>
+                    </div>
+                    <div class="checkboxContainer">
+                        <label>
+                            <input id="addBadgeTag" name="addBadgeTag" type="checkbox" is="emby-checkbox" />
+                            <span>Show an "Anime Multi Source" badge on shows and movies it updates</span>
+                        </label>
+                        <div class="fieldDescription">Adds the tag "Anime Multi Source" (listed under Tags on the item's page, and usable as a library filter). Turning this off removes the badge on the next sync.</div>
+                    </div>
+                    <div class="selectContainer">
+                        <label class="selectLabel" for="logLevel">Plugin log level</label>
+                        <select is="emby-select" id="logLevel" name="logLevel" class="emby-select-withcolor emby-select">
+                            <option value="info">Info (recommended)</option>
+                            <option value="debug">Debug</option>
+                        </select>
+                        <div class="fieldDescription">The plugin also writes its own log, AnimeMultiSource_YYYY-MM-DD.log, under Dashboard &gt; Logs (kept 7 days). Debug adds every API call and match decision, for tracking down a wrong or missing match. Jellyfin's main log is not affected.</div>
+                    </div>
+
                     <!-- Title Configuration -->
                     <h2>Title Configuration</h2>
                     <div class="selectContainer">
@@ -175,8 +212,8 @@
 
                     <div class="inputContainer">
                         <label class="inputLabel inputLabelUnfocused" for="chkAniDbRateLimit">AniDB Rate Limit</label>
-                        <input id="chkAniDbRateLimit" name="chkAniDbRateLimit" type="number" is="emby-input" min="0" />
-                        <div class="fieldDescription">This will prevent IP bans for requesting data too quickly.</div>
+                        <input id="chkAniDbRateLimit" name="chkAniDbRateLimit" type="number" is="emby-input" min="2000" step="500" />
+                        <div class="fieldDescription">Milliseconds between AniDB requests (at least 2000, AniDB's own limit). This will prevent IP bans for requesting data too quickly.</div>
                     </div>
 
                     <div>
@@ -256,6 +293,17 @@
                         document.getElementById('animeScheduleApiKey').value = config.AnimeScheduleApiKey || '';
                         document.getElementById('animeScheduleMode').value = config.AnimeScheduleMode || 'Combined';
 
+                        // Sync
+                        // A value that isn't in the list (e.g. typed into the XML) would leave the dropdown blank,
+                        // and saving a blank dropdown would turn sync off - show the default instead.
+                        var syncSelect = document.getElementById('syncIntervalHours');
+                        syncSelect.value = String(config.SyncIntervalHours != null ? config.SyncIntervalHours : 12);
+                        if (syncSelect.selectedIndex < 0) {
+                            syncSelect.value = '12';
+                        }
+                        document.getElementById('addBadgeTag').checked = config.AddBadgeTag !== false;
+                        document.getElementById('logLevel').value = config.DebugLogging ? 'debug' : 'info';
+
                         Dashboard.hideLoadingMsg();
                     });
                 },
@@ -293,18 +341,49 @@
                         config.ApprovedGenres = document.getElementById('approvedGenres').value;
 
                         // Limits
-                        config.AniDbRateLimit = document.getElementById('chkAniDbRateLimit').value;
+                        config.AniDbRateLimit = Math.max(2000, parseInt(document.getElementById('chkAniDbRateLimit').value || '2000'));
 
                         // AnimeSchedule.net
                         config.AnimeScheduleApiKey = document.getElementById('animeScheduleApiKey').value;
                         config.AnimeScheduleMode = document.getElementById('animeScheduleMode').value;
+
+                        // Sync
+                        config.SyncIntervalHours = parseInt(document.getElementById('syncIntervalHours').value || '0');
+                        config.AddBadgeTag = document.getElementById('addBadgeTag').checked;
+                        config.DebugLogging = document.getElementById('logLevel').value === 'debug';
 
                         ApiClient.updatePluginConfiguration(AnimeMultiSourceConfigurationPage.pluginUniqueId, config).then(function (result) {
                             Dashboard.processPluginConfigurationUpdateResult(result);
                         });
                     });
                 },
+
+                // Starts the "Sync anime metadata now" scheduled task, found by its key.
+                syncNow: function () {
+                    var status = document.getElementById('syncNowStatus');
+                    ApiClient.getScheduledTasks().then(function (tasks) {
+                        var task = tasks.find(function (t) { return t.Key === 'AnimeMultiSourceForceSync'; });
+                        if (!task) {
+                            throw new Error('task not found');
+                        }
+
+                        if (task.State === 'Running') {
+                            status.textContent = 'A sync is already running. Progress shows under Dashboard > Scheduled Tasks.';
+                            return;
+                        }
+
+                        return ApiClient.startScheduledTask(task.Id).then(function () {
+                            status.textContent = 'Sync started. Progress shows under Dashboard > Scheduled Tasks, and a summary goes to Dashboard > Activity.';
+                        });
+                    }).catch(function () {
+                        status.textContent = 'Could not start the sync. Restart Jellyfin after updating the plugin, then try again.';
+                    });
+                },
             };
+
+            document.getElementById('syncNow').addEventListener('click', function () {
+                AnimeMultiSourceConfigurationPage.syncNow();
+            });
 
             document.getElementById('AnimeMultiSourceConfigurationPage').addEventListener('pageshow', function () {
                 AnimeMultiSourceConfigurationPage.loadConfiguration();

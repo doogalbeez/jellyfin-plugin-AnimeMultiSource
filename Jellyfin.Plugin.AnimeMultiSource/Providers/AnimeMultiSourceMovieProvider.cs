@@ -33,6 +33,7 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
             IMediaSourceManager mediaSourceManager,
             ILocalizationManager localization)
         {
+            logger = PluginLog.Wrap(logger);
             _logger = logger;
             _httpClientFactory = httpClientFactory;
             _audioLanguages = new AudioLanguageDetector(libraryManager, mediaSourceManager, localization, logger);
@@ -44,7 +45,7 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
         public async Task<MetadataResult<Movie>> GetMetadata(MovieInfo info, CancellationToken cancellationToken)
         {
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-            _logger.LogInformation("=== MOVIE METADATA PROVIDER CALL for: {Name} (Path: {Path}) ===", info.Name, info.Path);
+            _logger.LogDebug("=== MOVIE METADATA PROVIDER CALL for: {Name} (Path: {Path}) ===", info.Name, info.Path);
 
             var config = Plugin.GetConfigurationSafe(_logger);
             var result = new MetadataResult<Movie>();
@@ -96,10 +97,7 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
                     movie.Studios = metadata.Studios.ToArray();
                 }
 
-                if (metadata.Tags != null)
-                {
-                    movie.Tags = metadata.Tags.ToArray();
-                }
+                movie.Tags = AnimeMultiSourceProvider.WithBadge(metadata.Tags, config);
 
                 SetProviderIds(movie, metadata);
 

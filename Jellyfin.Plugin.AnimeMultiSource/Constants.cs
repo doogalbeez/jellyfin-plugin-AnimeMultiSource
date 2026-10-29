@@ -17,6 +17,9 @@ namespace Jellyfin.Plugin.AnimeMultiSource
         public const string FribbAnimeListsUrl = "https://raw.githubusercontent.com/Fribb/anime-lists/master/anime-list-full.json";
         public const string AnimeOfflineDatabaseUrl = "https://raw.githubusercontent.com/Fribb/anime-lists/master/anime-offline-database-reduced.json";
 
+        // Text badge (a tag) on every show and movie this plugin updates.
+        public const string BadgeTag = "Anime Multi Source";
+
         // File names
         public const string PlexMatchFileName = ".plexmatch";
 

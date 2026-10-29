@@ -147,6 +147,10 @@ Action";
             // AnimeSchedule.net
             AnimeScheduleApiKey = string.Empty;
             AnimeScheduleMode = AnimeScheduleModeType.Combined;
+
+            // Sync: every 12 hours keeps upcoming air dates fresh without hammering the APIs on a big library.
+            SyncIntervalHours = 12;
+            AddBadgeTag = true;
         }
 
         // Existing properties
@@ -192,5 +196,14 @@ Action";
         // AnimeSchedule.net
         public string AnimeScheduleApiKey { get; set; }
         public AnimeScheduleModeType AnimeScheduleMode { get; set; }
+
+        // Hours between automatic syncs; 0 turns automatic sync off ("Sync now" still works).
+        public int SyncIntervalHours { get; set; }
+
+        // Adds the "Anime Multi Source" tag to every show and movie this plugin updates.
+        public bool AddBadgeTag { get; set; }
+
+        // Level of the plugin's own log file (AnimeMultiSource_yyyy-MM-dd.log): false = Info, true = Debug.
+        public bool DebugLogging { get; set; }
     }
 }

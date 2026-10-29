@@ -24,7 +24,10 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
         private readonly HttpClient _httpClient;
         private readonly ILogger _logger;
         private readonly TagFilterService _tagFilterService;
-        private DateTime _lastAniDbRequest = DateTime.MinValue;
+        // One client for the whole plugin: separate HttpClients per provider each held their own sockets,
+        // and the User-Agent was appended again for every ApiService created on a shared one.
+        internal static readonly HttpClient SharedHttpClient = CreateSharedHttpClient();
+        private static DateTime _lastAniDbRequest = DateTime.MinValue;
         private static readonly ConcurrentDictionary<long, AniDbCacheEntry> _aniDbCache = new();
         private static readonly TimeSpan AniDbCacheDuration = TimeSpan.FromDays(5);
         private static readonly object AniDbRateLock = new();
@@ -32,6 +35,9 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
         private static int _aniDbDailyRequestCount;
         private const int AniDbDailySoftCap = 5;
         private const int AniDbSlowRateLimitMs = 8000;
+        // AniDB's HTTP API rules: never more than one request every 2 seconds.
+        private const int AniDbMinRateLimitMs = 2000;
+        private const int AniListTagMinRank = 60;
         private static readonly object AniListRateLock = new();
         private static DateTimeOffset _lastAniListRequest = DateTimeOffset.MinValue;
         private static int _aniListWindowCount;
@@ -45,7 +51,8 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
         private static readonly TimeSpan PersistentCacheMaxAge = TimeSpan.FromDays(5);
         private static readonly object PersistentCacheLock = new();
         private static bool _persistentCacheLoaded;
-        private static string? _persistentCachePath;
+        private static DateTimeOffset _lastPersist = DateTimeOffset.MinValue;
+        private static readonly TimeSpan PersistInterval = TimeSpan.FromMinutes(1);
         private static readonly JsonSerializerOptions CacheSerializerOptions = new()
         {
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
@@ -68,9 +75,18 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
             _httpClient = httpClient;
             _logger = logger;
             _tagFilterService = new TagFilterService();
+        }
+
+        private static HttpClient CreateSharedHttpClient()
+        {
+            var client = new HttpClient(new HttpClientHandler
+            {
+                AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
+            });
 
             // Set user agent to be respectful to the APIs
-            _httpClient.DefaultRequestHeaders.Add("User-Agent", "Jellyfin-AnimeMultiSource-Plugin/1.0");
+            client.DefaultRequestHeaders.Add("User-Agent", "Jellyfin-AnimeMultiSource-Plugin/1.0");
+            return client;
         }
 
         public async Task<JikanAnime?> GetJikanAnimeAsync(long malId)
@@ -127,7 +143,9 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
                 }
 
                 var intAniListId = (int)anilistId;
-                if (TryGetAniListCache(_aniListMediaCache, intAniListId, "media", out AniListMedia cachedMedia))
+                // Entries cached by older versions lack type/format/studios/tags (Tags is always set by the
+                // current query, empty or not), so fetch those again instead of serving them for 5 more days.
+                if (TryGetAniListCache(_aniListMediaCache, intAniListId, "media", out AniListMedia cachedMedia) && cachedMedia.Tags != null)
                 {
                     return cachedMedia;
                 }
@@ -146,6 +164,19 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
                             genres
                             duration
                             averageScore
+                            format
+                            type
+                            studios(isMain: true) {
+                                nodes {
+                                    name
+                                }
+                            }
+                            tags {
+                                name
+                                rank
+                                isMediaSpoiler
+                                isGeneralSpoiler
+                            }
                             startDate {
                                 year
                                 month
@@ -168,7 +199,6 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
                                             english
                                         }
                                         format
-                                        type
                                         episodes
                                         season
                                         seasonYear
@@ -237,7 +267,8 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
 
         public async Task<AniListSeasonDetail?> GetAniListSeasonDetailAsync(int aniListId, bool forceRefresh = false)
         {
-            if (!forceRefresh && TryGetAniListCache(_aniListSeasonCache, aniListId, "season", out AniListSeasonDetail cached))
+            // Tags is always set by the current query; entries from older versions lack it (and type/format).
+            if (!forceRefresh && TryGetAniListCache(_aniListSeasonCache, aniListId, "season", out AniListSeasonDetail cached) && cached.Tags != null)
             {
                 return cached;
             }
@@ -260,6 +291,9 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
                         endDate { year month day }
                         status
                         episodes
+                        format
+                        type
+                        tags { name rank isMediaSpoiler isGeneralSpoiler }
                         relations {
                             edges {
                                 relationType
@@ -310,7 +344,8 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
                 SequelAniListId = sequelId,
                 Format = media.Format,
                 Type = media.Type,
-                Relations = media.Relations?.Edges ?? new List<AniListRelationEdge>()
+                Relations = media.Relations?.Edges ?? new List<AniListRelationEdge>(),
+                Tags = media.Tags ?? new List<AniListTag>()
             };
 
             StoreAniListCache(_aniListSeasonCache, aniListId, detail, "season");
@@ -539,7 +574,7 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
                 var query = @"
                     query ($search: String) {
                         Page(perPage: 10) {
-                            media(search: $search, type: ANIME, format: MOVIE) {
+                            media(search: $search, type: ANIME, format_in: [MOVIE, OVA, SPECIAL, ONA]) {
                                 id
                                 idMal
                                 format
@@ -704,16 +739,25 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
             return allGenres.Distinct().ToList();
         }
 
-        public List<string> GetStudios(JikanAnime? jikanData)
+        // Tags come from AniDB. When AniDB has none for a title (no AniDB id in the mapping, or AniDB
+        // paused), AniList's tags stand in: only ones its users rank at least 60% relevant, never spoilers.
+        public List<string> GetAniListTags(IEnumerable<AniListTag>? tags)
         {
-            var studios = new List<string>();
+            var names = (tags ?? Enumerable.Empty<AniListTag>())
+                .Where(t => t.Rank >= AniListTagMinRank && !t.IsMediaSpoiler && !t.IsGeneralSpoiler && !string.IsNullOrWhiteSpace(t.Name))
+                .Select(t => t.Name!)
+                .ToList();
+            return _tagFilterService.FilterTags(names);
+        }
 
-            if (jikanData?.Studios != null)
-            {
-                studios.AddRange(jikanData.Studios.Select(s => s.Name).Where(name => !string.IsNullOrEmpty(name))!);
-            }
-
-            return studios.Where(s => !string.IsNullOrEmpty(s)).Distinct().ToList();
+        // MAL's studio list first (it names the studio the way most people know it); AniList's main
+        // studios when Jikan has none, e.g. while MAL is down and Jikan is paused.
+        public List<string> GetStudios(JikanAnime? jikanData, AniListMedia? aniListData)
+        {
+            var jikanStudios = (jikanData?.Studios ?? new()).Select(s => s.Name);
+            var aniListStudios = (aniListData?.Studios?.Nodes ?? new()).Select(s => s.Name);
+            var studios = jikanStudios.Any(n => !string.IsNullOrWhiteSpace(n)) ? jikanStudios : aniListStudios;
+            return studios.Where(n => !string.IsNullOrWhiteSpace(n)).Select(n => n!).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
         }
 
         // Voice actors + staff. AniList returns every dub's voice actors with their language; keep the
@@ -1072,7 +1116,7 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
             if (_aniDbCache.TryGetValue(anidbId, out var cached) &&
                 now - cached.CachedAt < AniDbCacheDuration)
             {
-                _logger.LogInformation("AniDB cache hit for ID {AniDbId} (age: {Age:F1} minutes)", anidbId, (now - cached.CachedAt).TotalMinutes);
+                _logger.LogDebug("AniDB cache hit for ID {AniDbId} (age: {Age:F1} minutes)", anidbId, (now - cached.CachedAt).TotalMinutes);
                 return (new List<string>(cached.Tags), cached.MainTitle);
             }
 
@@ -1090,11 +1134,10 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
             try
             {
                 var rateContext = GetAniDbRateLimitContext(rateLimitMs);
-                var timeSinceLastRequest = DateTime.UtcNow - _lastAniDbRequest;
-                var waitMs = Math.Max(0, rateContext.EffectiveRateLimitMs - (int)timeSinceLastRequest.TotalMilliseconds);
+                var waitMs = rateContext.WaitMs;
                 if (waitMs > 0)
                 {
-                    _logger.LogInformation("AniDB rate limiting: waiting {WaitMs} ms before request #{RequestNumber} (mode: {Mode}, date: {Date})",
+                    _logger.LogDebug("AniDB rate limiting: waiting {WaitMs} ms before request #{RequestNumber} (mode: {Mode}, date: {Date})",
                         waitMs,
                         rateContext.RequestNumber,
                         rateContext.IsSlowMode ? "slow" : "fast",
@@ -1115,7 +1158,6 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
                 _logger.LogDebug("Fetching AniDB tags from: {Url}", url);
 
                 var response = await _httpClient.GetAsync(url);
-                _lastAniDbRequest = DateTime.UtcNow;
 
                 if (IsAniDbRateLimited(response))
                 {
@@ -1190,7 +1232,7 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
                     {
                         var cacheEntry = new AniDbCacheEntry(DateTimeOffset.UtcNow, new List<string>(tags), mainTitle);
                         _aniDbCache[anidbId] = cacheEntry;
-                        _logger.LogInformation("AniDB cache stored for ID {AniDbId} with {TagCount} tags and title '{MainTitle}'", anidbId, tags.Count, mainTitle);
+                        _logger.LogDebug("AniDB cache stored for ID {AniDbId} with {TagCount} tags and title '{MainTitle}'", anidbId, tags.Count, mainTitle);
                         PersistCachesToDiskSafe();
                     }
                 }
@@ -1235,82 +1277,6 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
             {
                 _logger.LogError(ex, "Error decompressing gzipped response");
                 throw;
-            }
-        }
-
-        // Also update the TestAniDbConnectionAsync method to handle compression:
-        public async Task<bool> TestAniDbConnectionAsync(string clientName, string clientVersion)
-        {
-            try
-            {
-                // Test with a known working anime (Natsume's Book of Friends - AniDB ID 5787)
-                var testUrl = $"http://api.anidb.net:9001/httpapi?request=anime&client={clientName}&clientver={clientVersion}&protover=1&aid=5787";
-
-                var response = await _httpClient.GetAsync(testUrl);
-                if (response.IsSuccessStatusCode)
-                {
-                    byte[] responseData = await response.Content.ReadAsByteArrayAsync();
-                    string content;
-
-                    if (IsGzipped(responseData))
-                    {
-                        content = DecompressGzip(responseData);
-                    }
-                    else
-                    {
-                        content = System.Text.Encoding.UTF8.GetString(responseData);
-                    }
-
-                    if (!string.IsNullOrEmpty(content) && content.Contains("<anime>"))
-                    {
-                        _logger.LogInformation("AniDB API connection test successful");
-                        return true;
-                    }
-                }
-
-                _logger.LogWarning("AniDB API connection test failed. Status: {StatusCode}", response.StatusCode);
-                return false;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "AniDB API connection test failed with exception");
-                return false;
-            }
-        }
-
-        private string CleanXmlContent(string xmlContent)
-        {
-            if (string.IsNullOrEmpty(xmlContent))
-                return xmlContent;
-
-            try
-            {
-                // Remove any invalid XML characters (like 0x1F)
-                // Valid XML characters: #x9 | #xA | #xD | [#x20-#xD7FF] | [#xE000-#xFFFD] | [#x10000-#x10FFFF]
-                var validChars = xmlContent.Where(ch =>
-                    ch == 0x9 ||
-                    ch == 0xA ||
-                    ch == 0xD ||
-                    (ch >= 0x20 && ch <= 0xD7FF) ||
-                    (ch >= 0xE000 && ch <= 0xFFFD) ||
-                    (ch >= 0x10000 && ch <= 0x10FFFF)
-                ).ToArray();
-
-                var cleaned = new string(validChars);
-
-                // Also try to detect if this might be an error message instead of XML
-                if (cleaned.Contains("error") || cleaned.Contains("Error") || cleaned.Length < 10)
-                {
-                    _logger.LogWarning("AniDB response appears to be an error or too short: {Content}", cleaned);
-                    return string.Empty;
-                }
-
-                return cleaned;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error cleaning XML content");
-                return string.Empty;
             }
         }
 
@@ -1369,12 +1335,19 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
                 }
 
                 var isSlowMode = _aniDbDailyRequestCount >= AniDbDailySoftCap;
+                var configured = Math.Max(AniDbMinRateLimitMs, configuredRateLimitMs);
                 var effective = isSlowMode
-                    ? Math.Max(AniDbSlowRateLimitMs, configuredRateLimitMs)
-                    : configuredRateLimitMs;
+                    ? Math.Max(AniDbSlowRateLimitMs, configured)
+                    : configured;
+
+                // Claim the next send slot while holding the lock (like the Jikan limiter), so parallel
+                // refreshes queue up behind each other instead of all seeing "no wait needed" at once.
+                var now = DateTime.UtcNow;
+                var waitMs = Math.Max(0, effective - (int)(now - _lastAniDbRequest).TotalMilliseconds);
+                _lastAniDbRequest = now.AddMilliseconds(waitMs);
 
                 _aniDbDailyRequestCount++;
-                return new AniDbRateLimitContext(effective, _aniDbDailyRequestCount, isSlowMode, _aniDbDailyCountDate);
+                return new AniDbRateLimitContext(effective, waitMs, _aniDbDailyRequestCount, isSlowMode, _aniDbDailyCountDate);
             }
         }
 
@@ -1625,7 +1598,7 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
 
             if (waitMs > 0)
             {
-                _logger.LogInformation("AniList rate limiting {Version}: waiting {WaitMs} ms before request #{CountInWindow} in current minute window starting {WindowStart}",
+                _logger.LogDebug("AniList rate limiting {Version}: waiting {WaitMs} ms before request #{CountInWindow} in current minute window starting {WindowStart}",
                     VersionTag, waitMs, requestNumber, windowStart.ToString("O"));
                 await Task.Delay(waitMs);
             }
@@ -1745,7 +1718,7 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
                 var age = DateTimeOffset.UtcNow - entry.CachedAt;
                 if (age < AniListCacheDuration)
                 {
-                    _logger.LogInformation("AniList cache hit {Version} for {CacheName} {AniListId} (age: {Age:F1} minutes)", VersionTag, cacheName, key, age.TotalMinutes);
+                    _logger.LogDebug("AniList cache hit {Version} for {CacheName} {AniListId} (age: {Age:F1} minutes)", VersionTag, cacheName, key, age.TotalMinutes);
                     value = entry.Data;
                     return true;
                 }
@@ -1827,6 +1800,20 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
 
         private void PersistCachesToDiskSafe()
         {
+            // shortcut: saves at most once a minute, so up to a minute of new entries is lost on a crash
+            // or shutdown (they're simply fetched again). Rewriting the whole file after every reply
+            // meant thousands of multi-MB writes during a large library's first scan.
+            lock (PersistentCacheLock)
+            {
+                var now = DateTimeOffset.UtcNow;
+                if (now - _lastPersist < PersistInterval)
+                {
+                    return;
+                }
+
+                _lastPersist = now;
+            }
+
             try
             {
                 PersistCachesToDisk();
@@ -1863,14 +1850,7 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
 
             lock (PersistentCacheLock)
             {
-                var directory = Path.GetDirectoryName(path);
-                if (!string.IsNullOrWhiteSpace(directory))
-                {
-                    Directory.CreateDirectory(directory);
-                }
-
-                var json = JsonSerializer.Serialize(snapshot, CacheSerializerOptions);
-                File.WriteAllText(path, json);
+                PluginData.WriteAtomic(path, JsonSerializer.Serialize(snapshot, CacheSerializerOptions));
                 _logger.LogDebug("Persistent cache saved to {Path}", path);
             }
         }
@@ -1911,48 +1891,7 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
             }
         }
 
-        private string GetPersistentCachePath()
-        {
-            if (!string.IsNullOrWhiteSpace(_persistentCachePath))
-            {
-                return _persistentCachePath!;
-            }
-
-            lock (PersistentCacheLock)
-            {
-                if (!string.IsNullOrWhiteSpace(_persistentCachePath))
-                {
-                    return _persistentCachePath!;
-                }
-
-                var folder = ResolveCacheFolder();
-                _persistentCachePath = Path.Combine(folder, "provider-cache.json");
-                return _persistentCachePath;
-            }
-        }
-
-        private string ResolveCacheFolder()
-        {
-            try
-            {
-                var plugin = Plugin.Instance;
-                var dataFolderProperty = plugin?.GetType().GetProperty("DataFolderPath");
-                var folderPath = dataFolderProperty?.GetValue(plugin) as string;
-                if (!string.IsNullOrWhiteSpace(folderPath))
-                {
-                    Directory.CreateDirectory(folderPath);
-                    return folderPath!;
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogDebug(ex, "Failed to resolve plugin data folder, falling back to base directory");
-            }
-
-            var fallback = Path.Combine(AppContext.BaseDirectory, "AnimeMultiSourceCache");
-            Directory.CreateDirectory(fallback);
-            return fallback;
-        }
+        private static string GetPersistentCachePath() => PluginData.GetPath("provider-cache.json");
 
         private sealed class PersistentCacheSnapshot
         {
@@ -1964,7 +1903,7 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
         }
 
         private sealed record AniDbCacheEntry(DateTimeOffset CachedAt, List<string> Tags, string? MainTitle = null);
-        private sealed record AniDbRateLimitContext(int EffectiveRateLimitMs, int RequestNumber, bool IsSlowMode, DateTime Date);
+        private sealed record AniDbRateLimitContext(int EffectiveRateLimitMs, int WaitMs, int RequestNumber, bool IsSlowMode, DateTime Date);
         private sealed record AniListCacheEntry<T>(DateTimeOffset CachedAt, T Data);
         public sealed class AniListSeasonDetail
         {
@@ -1985,6 +1924,9 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
             public string? Format { get; set; }
             public string? Type { get; set; }
             public List<AniListRelationEdge> Relations { get; set; } = new();
+
+            // Null only for entries cached before tags were requested.
+            public List<AniListTag>? Tags { get; set; }
         }
     }
 }

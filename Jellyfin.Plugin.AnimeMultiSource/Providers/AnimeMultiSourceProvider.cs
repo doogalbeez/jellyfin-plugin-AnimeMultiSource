@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -29,6 +30,7 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
             IMediaSourceManager mediaSourceManager,
             ILocalizationManager localization)
         {
+            logger = PluginLog.Wrap(logger);
             _logger = logger;
             _audioLanguages = new AudioLanguageDetector(libraryManager, mediaSourceManager, localization, logger);
 
@@ -43,7 +45,7 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
             var callId = Interlocked.Increment(ref _callCount);
             var assemblyVersion = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
-            _logger.LogInformation("=== METADATA PROVIDER CALL #{CallId} v{Version} for: {Name} (Path: {Path}) ===",
+            _logger.LogDebug("=== METADATA PROVIDER CALL #{CallId} v{Version} for: {Name} (Path: {Path}) ===",
                 callId, assemblyVersion, info.Name, info.Path);
 
             // Log the SeriesInfo properties to understand what's different between calls
@@ -105,8 +107,7 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
                     result.Item.Studios = metadata.Studios.ToArray();
 
                 // Set tags
-                if (metadata.Tags != null)
-                    result.Item.Tags = metadata.Tags.ToArray();
+                result.Item.Tags = WithBadge(metadata.Tags, config);
 
                 // Store AMS score (tag count) as a provider ID so it doesn't alter the displayed rating.
                 var amsScore = metadata.Tags?.Count ?? 0;
@@ -128,7 +129,7 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
                 _logger.LogInformation("Successfully set metadata for {Title} with {GenreCount} genres, {StudioCount} studios",
                     metadata.Title, metadata.Genres?.Count ?? 0, metadata.Studios?.Count ?? 0);
 
-                _logger.LogInformation("=== METADATA PROVIDER COMPLETED CALL #{CallId} ===", callId);
+                _logger.LogDebug("=== METADATA PROVIDER COMPLETED CALL #{CallId} ===", callId);
             }
             catch (Exception ex)
             {
@@ -136,6 +137,13 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
             }
 
             return result;
+        }
+
+        // The badge says "this plugin filled this item in"; Jellyfin shows it with the item's tags.
+        internal static string[] WithBadge(List<string>? tags, Configuration.PluginConfiguration config)
+        {
+            var result = tags ?? new List<string>();
+            return config.AddBadgeTag ? result.Append(Constants.BadgeTag).ToArray() : result.ToArray();
         }
 
         private SeriesStatus GetSeriesStatus(string status)

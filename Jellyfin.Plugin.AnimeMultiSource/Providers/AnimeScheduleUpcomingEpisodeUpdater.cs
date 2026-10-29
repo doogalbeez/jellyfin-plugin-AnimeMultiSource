@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Jellyfin.Data.Enums;
 using Jellyfin.Plugin.AnimeMultiSource.Configuration;
+using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Model.Entities;
@@ -28,6 +28,9 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
         // episode database) - virtual episodes get a "TBA" placeholder name, so pulling further
         // ahead doesn't risk showing a made-up title, only a date that may still shift.
         private const int LookaheadWeeks = 4;
+
+        // Marks the virtual episodes this updater creates, so it only ever deletes its own.
+        internal const string VirtualEpisodeMarker = "AnimeScheduleVirtual";
 
         private readonly ILibraryManager _libraryManager;
         private readonly ILocalizationManager _localization;
@@ -58,12 +61,9 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
 
             try
             {
-                var handler = new HttpClientHandler
-                {
-                    AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
-                };
-                using var httpClient = new HttpClient(handler);
-                httpClient.DefaultRequestHeaders.Add("User-Agent", "Jellyfin-AnimeMultiSource-Plugin/1.0");
+                RemoveStaleVirtualEpisodes(series);
+
+                var httpClient = ApiService.SharedHttpClient;
                 var scheduleClient = new AnimeScheduleClient(httpClient, _logger, config.AnimeScheduleApiKey);
                 var apiService = new ApiService(httpClient, _logger);
 
@@ -176,7 +176,7 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
         // isn't fully consistent across shows though - Re:Zero uses a bare "...-4", but "Trapped in
         // a Dating Sim" season 2 uses "...-2nd-season" - so both trailing styles are handled; no
         // trailing season marker at all means the base/first season.
-        private static int ParseSeasonNumberFromRoute(string route)
+        internal static int ParseSeasonNumberFromRoute(string route)
         {
             var withoutPartSuffix = Regex.Replace(route, "-part-\\d+$", string.Empty, RegexOptions.IgnoreCase);
             var match = Regex.Match(withoutPartSuffix, "-(\\d+)(?:st|nd|rd|th)?(?:-season)?$", RegexOptions.IgnoreCase);
@@ -288,6 +288,51 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
             return season;
         }
 
+        // Upcoming placeholders are only useful until the episode airs or its real file arrives; nothing
+        // removed them before, so a downloaded episode sat next to its old "TBA" copy, and a delayed one
+        // kept a stale date forever. "TBA" also catches placeholders made by versions before the marker.
+        private void RemoveStaleVirtualEpisodes(Series series)
+        {
+            // Placeholders first: most series have none, so their real episodes are never loaded.
+            var placeholders = _libraryManager.GetItemList(new InternalItemsQuery
+            {
+                AncestorIds = new[] { series.Id },
+                IncludeItemTypes = new[] { BaseItemKind.Episode },
+                IsVirtualItem = true,
+                Recursive = true
+            }).OfType<Episode>().Where(IsOurPlaceholder).ToList();
+            if (placeholders.Count == 0)
+            {
+                return;
+            }
+
+            var physical = _libraryManager.GetItemList(new InternalItemsQuery
+            {
+                AncestorIds = new[] { series.Id },
+                IncludeItemTypes = new[] { BaseItemKind.Episode },
+                IsVirtualItem = false,
+                Recursive = true
+            }).OfType<Episode>()
+                .Select(e => (e.ParentIndexNumber, e.IndexNumber))
+                .ToHashSet();
+
+            var now = DateTime.UtcNow;
+            foreach (var episode in placeholders.Where(e => IsStalePlaceholder(e, physical, now)))
+            {
+                _libraryManager.DeleteItem(episode, new DeleteOptions { DeleteFileLocation = false });
+                _logger.LogInformation("AnimeSchedule: removed placeholder {Series} S{Season}E{Episode} (aired or downloaded)",
+                    series.Name, episode.ParentIndexNumber, episode.IndexNumber);
+            }
+        }
+
+        internal static bool IsOurPlaceholder(Episode episode)
+            => episode.IsVirtualItem && (episode.ProviderIds?.ContainsKey(VirtualEpisodeMarker) == true || episode.Name == "TBA");
+
+        // Stale = one of our placeholders that has aired, or whose real file is now in the library.
+        internal static bool IsStalePlaceholder(Episode episode, ISet<(int? Season, int? Episode)> physical, DateTime nowUtc)
+            => IsOurPlaceholder(episode)
+                && (episode.PremiereDate < nowUtc || physical.Contains((episode.ParentIndexNumber, episode.IndexNumber)));
+
         private async Task ApplyEpisodeAsync(Season season, int episodeNumber, DateTime premiereDateUtc)
         {
             // season.Children is only a snapshot of whatever was already loaded onto this in-memory
@@ -295,7 +340,8 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
             // real query (the same one jellyfin-plugin-tvdb uses for this exact lookup). Using
             // .Children here was creating a second, duplicate "TBA" virtual episode right next to a
             // real, already-named one whenever .Children came back empty.
-            var existing = season.GetEpisodes().OfType<Episode>().FirstOrDefault(e => e.IndexNumber == episodeNumber);
+            var matches = season.GetEpisodes().OfType<Episode>().Where(e => e.IndexNumber == episodeNumber).ToList();
+            var existing = matches.FirstOrDefault(e => !e.IsVirtualItem) ?? matches.FirstOrDefault();
             if (existing != null)
             {
                 if (!existing.IsVirtualItem || existing.PremiereDate == premiereDateUtc)
@@ -334,6 +380,7 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
                 DateLastSaved = DateTime.UtcNow
             };
             episode.PresentationUniqueKey = episode.GetPresentationUniqueKey();
+            episode.SetProviderId(VirtualEpisodeMarker, "1");
 
             season.AddChild(episode);
             // AddChild only updates the in-memory tree; a direct repository save is what actually

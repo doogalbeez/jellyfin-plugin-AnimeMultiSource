@@ -80,10 +80,12 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
             "combat butler -- DO NOT ADD -- TO BE SPLIT AND DELETED",
             "DESCRIPTION MISSING",
             "medieval -- TO BE SPLIT AND DELETED",
-            "censored uncensored version",
             "DESCRIPTION NEEDS IMPROVEMENT",
             "maintenance tags"
         };
+
+        // AniDB's maintenance markers are upper case, so matching them case-sensitively never hits a real tag.
+        private static readonly string[] MaintenanceMarkers = { "TO BE ", "DO NOT " };
 
         public List<string> FilterTags(List<string> tags)
         {
@@ -100,19 +102,11 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
 
         private bool IsExcluded(string tag)
         {
-            // Check if the tag exactly matches an excluded category
-            if (ExcludedTagCategories.Contains(tag))
-                return true;
-
-            // Check if the tag contains any excluded category as a substring
-            // This handles cases where tags might be variations of excluded categories
-            foreach (var excluded in ExcludedTagCategories)
-            {
-                if (tag.IndexOf(excluded, StringComparison.OrdinalIgnoreCase) >= 0)
-                    return true;
-            }
-
-            return false;
+            // Exact matches only: a substring match on "time" or "place" also threw away
+            // real tags like "time travel" and "workplace".
+            var trimmed = tag.Trim();
+            return ExcludedTagCategories.Contains(trimmed)
+                || MaintenanceMarkers.Any(marker => trimmed.Contains(marker, StringComparison.Ordinal));
         }
 
         public void LogFilteredTags(ILogger logger, List<string> originalTags, List<string> filteredTags)

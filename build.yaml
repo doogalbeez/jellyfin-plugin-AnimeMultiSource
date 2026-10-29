@@ -1,7 +1,7 @@
 ---
 name: "AnimeMultiSource"
 guid: "8eca6f17-71fe-4309-a670-3cae083f22bd"
-version: "1.0.7.0"
+version: "1.0.8.0"
 targetAbi: "12.0.0.0"
 framework: "net10.0"
 overview: "Anime metadata for series and movies from multiple sources (Jellyfin 12)"
@@ -12,5 +12,6 @@ owner: "doogalbeez (fork of webbster64)"
 artifacts:
 - "Jellyfin.Plugin.AnimeMultiSource.dll"
 changelog: >
-  Jellyfin 12 fork: Jellyfin 12.2 support, movie metadata provider, "Fill in missing anime metadata" task with progress,
-  per-item progress log, sidebar link, cast language setting, Jikan fast-fail, TMDb/runtime/External ID fixes, new logo.
+  Sync settings (auto sync every 3 hours to a week, or off, plus Sync now), an "Anime Multi Source" badge tag,
+  AniDB rate-limit and cache fixes for large libraries, and fixes for seasons, tags, Fanart.tv settings, TVDB errors
+  and upcoming "TBA" placeholders.

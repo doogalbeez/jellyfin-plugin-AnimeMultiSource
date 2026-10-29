@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
@@ -26,6 +27,22 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
         private static DateTime _lastUpdated = DateTime.MinValue;
         private static readonly SemaphoreSlim LoadLock = new(1, 1);
         private static readonly TimeSpan CacheDuration = TimeSpan.FromHours(Constants.AnimeListCacheHours);
+        private static readonly TimeSpan RetryAfterFailure = TimeSpan.FromMinutes(10);
+        private const string SavedListFileName = "anime-list-full.json";
+
+        // Entries Fribb is missing entirely, checked before the Fribb list.
+        private static readonly List<AnimeMapping> ManualMappings = new()
+        {
+            // Fribb missing TVDB/IMDb: True Beauty (2024)
+            new AnimeMapping
+            {
+                tvdb_id = 442363,
+                imdb_id = ["tt33054444"],
+                anilist_id = 152184,
+                mal_id = 57192,
+                type = "ONA"
+            }
+        };
 
         public AnimeListMapper(HttpClient httpClient, ILogger logger)
         {
@@ -56,8 +73,13 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
                     PropertyNameCaseInsensitive = true
                 };
 
-                var json = await _httpClient.GetStringAsync(Constants.FribbAnimeListsUrl);
+                var (json, fromSavedCopy) = await DownloadOrReadSavedListAsync();
                 var mappings = JsonSerializer.Deserialize<List<AnimeMapping>>(json, options);
+                if (!fromSavedCopy && mappings?.Count > 0)
+                {
+                    // Saved only once it has parsed, so a broken download never replaces the good copy.
+                    SaveListCopy(json);
+                }
 
                 // Handle duplicates by taking the first occurrence
                 var mappingsByTvdb = mappings?
@@ -108,10 +130,17 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
                 _mappingsByMal = mappingsByMal;
                 _movieMappingsByTmdb = movieMappingsByTmdb;
                 _movieMappingsByImdb = movieMappingsByImdb;
-                _lastUpdated = DateTime.UtcNow;
+                // A list read from the saved copy is only a stand-in: try GitHub again soon.
+                _lastUpdated = fromSavedCopy ? DateTime.UtcNow - CacheDuration + RetryAfterFailure : DateTime.UtcNow;
 
                 _logger.LogInformation("Loaded {Count} anime mappings with {TvdbCount} TVDB entries and {ImdbCount} IMDb entries ({MovieTmdbCount} TMDb movie ids)",
                     mappings?.Count ?? 0, _mappingsByTvdb.Count, _mappingsByImdb.Count, _movieMappingsByTmdb.Count);
+            }
+            catch (Exception ex) when (_mappingsByAniList.Count > 0)
+            {
+                // Keep serving the lists already in memory; failing here used to fail every refresh.
+                _logger.LogWarning(ex, "Failed to refresh anime lists; keeping the ones already loaded and retrying in {Minutes} minutes", RetryAfterFailure.TotalMinutes);
+                _lastUpdated = DateTime.UtcNow - CacheDuration + RetryAfterFailure;
             }
             catch (Exception ex)
             {
@@ -122,6 +151,71 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
             {
                 LoadLock.Release();
             }
+        }
+
+        // Good downloads are saved (see SaveListCopy), so a restart while GitHub is unreachable still has a list to work with.
+        private async Task<(string Json, bool FromSavedCopy)> DownloadOrReadSavedListAsync()
+        {
+            var path = PluginData.GetPath(SavedListFileName);
+            try
+            {
+                return (await _httpClient.GetStringAsync(Constants.FribbAnimeListsUrl), false);
+            }
+            catch (Exception ex) when (_mappingsByAniList.Count == 0 && File.Exists(path))
+            {
+                _logger.LogWarning(ex, "Could not download the Fribb anime list; using the copy saved at {Path}", path);
+                return (await File.ReadAllTextAsync(path), true);
+            }
+        }
+
+        private void SaveListCopy(string json)
+        {
+            var path = PluginData.GetPath(SavedListFileName);
+            try
+            {
+                PluginData.WriteAtomic(path, json);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not save a copy of the Fribb anime list to {Path}", path);
+            }
+        }
+
+        // One place that turns a .plexmatch into a mapping, so series and seasons resolve the same way.
+        // anilistid/malid still work for titles Fribb doesn't list yet (e.g. brand-new simulcasts).
+        public AnimeMapping? FindMapping(PlexMatchData plexMatch)
+        {
+            if (!string.IsNullOrEmpty(plexMatch.TvdbId))
+            {
+                var mapping = ManualMappings.FirstOrDefault(m => m.TvdbId?.ToString(CultureInfo.InvariantCulture) == plexMatch.TvdbId)
+                    ?? GetMappingByTvdbId(plexMatch.TvdbId);
+                if (mapping != null)
+                {
+                    return mapping;
+                }
+            }
+
+            if (!string.IsNullOrEmpty(plexMatch.ImdbId))
+            {
+                var mapping = ManualMappings.FirstOrDefault(m => m.imdb_id.Contains(plexMatch.ImdbId, StringComparer.OrdinalIgnoreCase))
+                    ?? GetMappingByImdbId(plexMatch.ImdbId);
+                if (mapping != null)
+                {
+                    return mapping;
+                }
+            }
+
+            if (plexMatch.AniListId.HasValue)
+            {
+                return GetMappingByAniListId(plexMatch.AniListId.Value) ?? new AnimeMapping { anilist_id = plexMatch.AniListId.Value };
+            }
+
+            if (plexMatch.MalId.HasValue)
+            {
+                return GetMappingByMalId(plexMatch.MalId.Value) ?? new AnimeMapping { mal_id = plexMatch.MalId.Value };
+            }
+
+            return null;
         }
 
         // Fribb's list sometimes lacks anidb/kitsu/anisearch/livechart ids for very new titles

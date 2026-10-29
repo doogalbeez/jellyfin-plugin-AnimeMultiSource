@@ -20,26 +20,20 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
         private readonly ApiService _apiService;
         private readonly PlexMatchParser _plexMatchParser;
         private readonly AnimeListMapper _animeListMapper;
-        private readonly TagFilterService _tagFilterService;
         private readonly ILocalizationManager _localization;
         private PluginConfiguration _config;
 
         public AnimeSeasonProvider(ILogger<AnimeSeasonProvider> logger, ILocalizationManager localization)
         {
+            logger = PluginLog.Wrap(logger);
             _logger = logger;
             _localization = localization;
             _config = Plugin.GetConfigurationSafe(_logger);
 
-            var httpClientHandler = new HttpClientHandler
-            {
-                AutomaticDecompression = System.Net.DecompressionMethods.GZip | System.Net.DecompressionMethods.Deflate
-            };
-
-            var httpClient = new HttpClient(httpClientHandler);
+            var httpClient = ApiService.SharedHttpClient;
             _apiService = new ApiService(httpClient, logger);
             _plexMatchParser = new PlexMatchParser(logger);
             _animeListMapper = new AnimeListMapper(httpClient, logger);
-            _tagFilterService = new TagFilterService();
         }
 
         public string Name => $"{Constants.PluginName} Season";
@@ -48,7 +42,7 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
         {
             var result = new MetadataResult<Season>();
             _config = Plugin.GetConfigurationSafe(_logger);
-            _logger.LogInformation("=== SEASON PROVIDER CALL for: {SeasonName} (Season {SeasonNumber}, Path: {Path}) ===",
+            _logger.LogDebug("=== SEASON PROVIDER CALL for: {SeasonName} (Season {SeasonNumber}, Path: {Path}) ===",
                 info.Name, info.IndexNumber, info.Path);
 
             // Jellyfin's own folder parsing only understands English "Season N"/"S1" names, so
@@ -131,9 +125,9 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
                 overview = jikanData?.Synopsis;
             }
 
-            if (string.IsNullOrWhiteSpace(overview))
+            if (string.IsNullOrWhiteSpace(overview) && !string.IsNullOrWhiteSpace(seasonDetail.Description))
             {
-                overview = seasonDetail.Description;
+                overview = AnimeMultiSourceService.StripHtml(seasonDetail.Description);
             }
 
             var season = new Season
@@ -150,11 +144,6 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
             {
                 season.PremiereDate = seasonDetail.StartDate.Value;
                 season.ProductionYear = seasonDetail.StartDate.Value.Year;
-            }
-
-            if (seasonDetail.EndDate.HasValue)
-            {
-                // Season does not expose a dedicated end date field in some Jellyfin versions; ignore if not supported.
             }
 
             if (seasonDetail.AverageScore.HasValue)
@@ -179,7 +168,8 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
             if (_config.EnableAniDbTags)
             {
                 var seasonTags = await GetSeasonTagsAsync(seasonDetail.AniListId);
-                season.Tags = seasonTags.ToArray();
+                // Same fallback as series and movies: AniList's tags when AniDB has none for this season.
+                season.Tags = (seasonTags.Count > 0 ? seasonTags : _apiService.GetAniListTags(seasonDetail.Tags)).ToArray();
             }
 
             result.Item = season;
@@ -200,14 +190,37 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
 
         private async Task<int?> ResolveRootAniListIdAsync(SeasonInfo info)
         {
-            // 1) Try provider IDs from series or season
-            var idFromInfo = GetAniListIdFromInfo(info);
-            if (idFromInfo.HasValue)
+            // The series provider already chose the entry this library's Season 1 starts at (pinned ids,
+            // closest year match) and stored it on the series - use it as-is. Walking prequels from it
+            // again would undo that choice, e.g. Ranking of Kings: Treasure Chest of Courage -> Ranking of Kings.
+            if (info.SeriesProviderIds != null &&
+                TryGetValueIgnoreCase(info.SeriesProviderIds, Constants.AniListProviderId, out var seriesAniList) &&
+                int.TryParse(seriesAniList, out var seriesId))
             {
-                return await _apiService.GetRootAniListIdAsync(idFromInfo.Value);
+                return seriesId;
             }
 
-            // 2) Try reading parent .plexmatch and mapping via Fribb list
+            // A season's own AniList id is that season's entry, not Season 1's.
+            if (info.ProviderIds != null &&
+                TryGetValueIgnoreCase(info.ProviderIds, Constants.AniListProviderId, out var seasonAniList) &&
+                int.TryParse(seasonAniList, out var seasonId))
+            {
+                return await _apiService.GetRootAniListIdAsync(seasonId);
+            }
+
+            var mapping = await ReadSeriesMappingAsync(info);
+            if (mapping?.anilist_id.HasValue == true)
+            {
+                _logger.LogInformation("Resolved AniList ID {AniListId} for season {Name} via .plexmatch", mapping.anilist_id, info.Name);
+                return await _apiService.GetRootAniListIdAsync(mapping.anilist_id.Value);
+            }
+
+            return null;
+        }
+
+        // Reads the series folder's .plexmatch and maps it the same way the series provider does.
+        private async Task<AnimeMapping?> ReadSeriesMappingAsync(SeasonInfo info)
+        {
             var seasonPath = info.Path ?? string.Empty;
             var seriesDir = Directory.GetParent(seasonPath)?.FullName;
             if (string.IsNullOrEmpty(seriesDir))
@@ -225,52 +238,15 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
 
             try
             {
-                var content = await File.ReadAllTextAsync(plexMatchPath);
-                var plexData = _plexMatchParser.ParsePlexMatch(content);
-
+                var plexData = _plexMatchParser.ParsePlexMatch(await File.ReadAllTextAsync(plexMatchPath));
                 await _animeListMapper.LoadAnimeListsAsync();
-                AnimeMapping? mapping = null;
-                if (!string.IsNullOrEmpty(plexData.TvdbId))
-                {
-                    mapping = _animeListMapper.GetMappingByTvdbId(plexData.TvdbId);
-                }
-
-                if (mapping == null && !string.IsNullOrEmpty(plexData.ImdbId))
-                {
-                    mapping = _animeListMapper.GetMappingByImdbId(plexData.ImdbId);
-                }
-
-                if (mapping?.anilist_id.HasValue == true)
-                {
-                    _logger.LogInformation("Resolved AniList ID {AniListId} for series '{Title}' via .plexmatch", mapping.anilist_id, plexData.Title);
-                    return await _apiService.GetRootAniListIdAsync(mapping.anilist_id.Value);
-                }
+                return _animeListMapper.FindMapping(plexData);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error resolving AniList ID from .plexmatch for season path {Path}", seasonPath);
+                _logger.LogError(ex, "Error resolving the series mapping from .plexmatch for season path {Path}", seasonPath);
+                return null;
             }
-
-            return null;
-        }
-
-        private int? GetAniListIdFromInfo(SeasonInfo info)
-        {
-            if (info.SeriesProviderIds != null &&
-                TryGetValueIgnoreCase(info.SeriesProviderIds, Constants.AniListProviderId, out var seriesAniList) &&
-                int.TryParse(seriesAniList, out var seriesId))
-            {
-                return seriesId;
-            }
-
-            if (info.ProviderIds != null &&
-                TryGetValueIgnoreCase(info.ProviderIds, Constants.AniListProviderId, out var seasonAniList) &&
-                int.TryParse(seasonAniList, out var seasonId))
-            {
-                return seasonId;
-            }
-
-            return null;
         }
 
         private bool TryGetValueIgnoreCase(IDictionary<string, string> dict, string key, out string value)
@@ -333,48 +309,8 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
                 return seriesMalId;
             }
 
-            // Try mapping via .plexmatch
-            var seasonPath = info.Path ?? string.Empty;
-            var seriesDir = Directory.GetParent(seasonPath)?.FullName;
-            if (string.IsNullOrEmpty(seriesDir))
-            {
-                return null;
-            }
-
-            var plexMatchPath = Path.Combine(seriesDir, Constants.PlexMatchFileName);
-            if (!File.Exists(plexMatchPath))
-            {
-                return null;
-            }
-
-            try
-            {
-                var content = await File.ReadAllTextAsync(plexMatchPath);
-                var plexData = _plexMatchParser.ParsePlexMatch(content);
-
-                await _animeListMapper.LoadAnimeListsAsync();
-                AnimeMapping? mapping = null;
-                if (!string.IsNullOrEmpty(plexData.TvdbId))
-                {
-                    mapping = _animeListMapper.GetMappingByTvdbId(plexData.TvdbId);
-                }
-
-                if (mapping == null && !string.IsNullOrEmpty(plexData.ImdbId))
-                {
-                    mapping = _animeListMapper.GetMappingByImdbId(plexData.ImdbId);
-                }
-
-                if (mapping?.mal_id.HasValue == true)
-                {
-                    return (int)mapping.mal_id.Value;
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error resolving MAL ID from .plexmatch for season path {Path}", seasonPath);
-            }
-
-            return null;
+            var mapping = await ReadSeriesMappingAsync(info);
+            return mapping?.mal_id.HasValue == true ? (int)mapping.mal_id.Value : null;
         }
 
         private async Task<List<string>> GetSeasonTagsAsync(int aniListSeasonId)
@@ -395,14 +331,8 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
                     _config.AniDbClientVersion,
                     _config.AniDbRateLimit);
 
-                if (tags == null || tags.Count == 0)
-                {
-                    return new List<string>();
-                }
-
-                var filtered = _tagFilterService.FilterTags(tags);
-                _tagFilterService.LogFilteredTags(_logger, tags, filtered);
-                return filtered;
+                // Already filtered by GetAniDbTagsAsync.
+                return tags ?? new List<string>();
             }
             catch (Exception ex)
             {

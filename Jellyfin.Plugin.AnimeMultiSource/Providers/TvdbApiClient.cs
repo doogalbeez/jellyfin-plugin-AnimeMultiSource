@@ -17,6 +17,7 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
         private const string BaseUrl = "https://api4.thetvdb.com/v4";
         private static readonly TimeSpan EpisodeCacheDuration = TimeSpan.FromHours(6);
         private static readonly TimeSpan SeriesCacheDuration = TimeSpan.FromHours(6);
+        private static readonly TimeSpan FailureCacheDuration = TimeSpan.FromMinutes(5);
 
         private readonly HttpClient _httpClient;
         private readonly ILogger _logger;
@@ -66,6 +67,7 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
             var episodes = new List<TvdbEpisode>();
             var nextUrl = $"{BaseUrl}/series/{seriesId}/episodes/default?page=0";
             var pageGuard = 0;
+            var failed = false;
 
             while (!string.IsNullOrEmpty(nextUrl) && pageGuard < 20)
             {
@@ -73,12 +75,14 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
                 var response = await SendAuthorizedAsync(nextUrl, cancellationToken);
                 if (response == null)
                 {
+                    failed = true;
                     break;
                 }
 
                 if (!response.IsSuccessStatusCode)
                 {
                     _logger.LogWarning("TVDB request for {Url} failed with status {Status}", nextUrl, response.StatusCode);
+                    failed = true;
                     break;
                 }
 
@@ -93,8 +97,12 @@ namespace Jellyfin.Plugin.AnimeMultiSource.Providers
                 nextUrl = data?.Links?.Next;
             }
 
-            _episodeCache[seriesId] = new TvdbEpisodeCacheEntry(DateTimeOffset.UtcNow, new List<TvdbEpisode>(episodes));
-            _logger.LogInformation("Cached {Count} TVDB episodes for series {SeriesId}", episodes.Count, seriesId);
+            // A failed fetch is only remembered for 5 minutes (backdated so it expires early): caching it
+            // for 6 hours left the show's episodes "not found", and not caching it at all meant one login
+            // attempt per episode while TVDB was down.
+            var cachedAt = failed ? DateTimeOffset.UtcNow - EpisodeCacheDuration + FailureCacheDuration : DateTimeOffset.UtcNow;
+            _episodeCache[seriesId] = new TvdbEpisodeCacheEntry(cachedAt, new List<TvdbEpisode>(episodes));
+            _logger.LogInformation("Cached {Count} TVDB episodes for series {SeriesId}{Failed}", episodes.Count, seriesId, failed ? " (fetch failed; retrying in 5 minutes)" : string.Empty);
 
             return episodes;
         }
