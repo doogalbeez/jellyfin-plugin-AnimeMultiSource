@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.0.8.0 (Jellyfin 12 fork) - 2026-10-17
+## 1.0.8.0 (Jellyfin 12 fork) - 2026-10-28
 Made with the help of [Claude Code](https://claude.com/claude-code).
 
 **New**
@@ -9,7 +9,7 @@ Made with the help of [Claude Code](https://claude.com/claude-code).
 - AniList tags as a fallback: when AniDB has no tags for a show, season or movie (no AniDB id in the mapping, or AniDB paused), AniList's tags are used instead, only those ranked at least 60% relevant and never spoilers. A movie no longer ends up with only the badge after "Replace all metadata".
 - The Fribb mapping list is kept on disk, so restarts and GitHub outages don't stop metadata.
 - Own log file: the plugin also writes `AnimeMultiSource_YYYY-MM-DD.log` (Dashboard > Logs, kept 7 days), with a **Plugin log level** setting (Info / Debug). Debug works without editing `logging.json`; Jellyfin's main log is unchanged.
-- Unit tests for the parsers and the tag filter.
+- Unit tests for the parsers, the tag filter and the plugin log.
 
 **Fixed**
 - AniDB rate limit is now shared by all providers and claimed under a lock, so parallel refreshes can't send requests at the same time (risk of an AniDB ban). Minimum 2 s.
@@ -24,6 +24,7 @@ Made with the help of [Claude Code](https://claude.com/claude-code).
 - Tag refreshes never ran again for a show's later seasons. Films now get them too: about a week and about 3 months after being added, for films released in the last 3 years.
 - Runtime set to "Jikan" never fell back to AniList.
 - Studios came only from MAL (Jikan), so they stayed empty whenever MAL was slow and Jikan was paused; AniList's main studio is now the fallback. Series premiere/end dates fall back to AniList the same way. AniList entries cached by older versions are fetched again once so this applies right away.
+- Movie title search only looked at AniList entries marked MOVIE, so most OVA films never matched; it now also matches OVAs, specials and ONAs.
 - AniList queries didn't request `format`, so TV/movie checks relied on duration alone.
 - AniList HTML (`<br>`, `<i>`) showed in series and season overviews on TV clients.
 - Fanart.tv network errors no longer drop the TVDB images; only backdrops are size-probed (far fewer requests).
