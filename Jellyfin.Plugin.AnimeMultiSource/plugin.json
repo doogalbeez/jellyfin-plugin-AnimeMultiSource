@@ -1,7 +1,7 @@
 {
   "guid": "8eca6f17-71fe-4309-a670-3cae083f22bd",
   "name": "AnimeMultiSource",
-  "version": "1.0.8.0",
+  "version": "1.0.8.1",
   "description": "Anime metadata for TV series and movies from AniList, AniDB, MAL, TVDB, Fanart.tv and Fribb mappings. Works with Jellyfin 12.2. Jellyfin 12 fork of webbster64's Anime Multi Source.",
   "targetAbi": "12.0.0.0",
   "sourceUrl": "https://github.com/doogalbeez/jellyfin-plugin-AnimeMultiSource",

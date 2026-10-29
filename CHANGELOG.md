@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.8.1 (Jellyfin 12 fork) - 2026-10-28
+**Fixed**
+- Updating from the plugin catalog could leave the old version installed next to the new one (both loaded, settings could reset): the clean-up never matched the catalog's `Anime Multi Source_<version>` folder names. It could also delete a newer version when both were loaded; now only older versions are removed.
+
 ## 1.0.8.0 (Jellyfin 12 fork) - 2026-10-28
 Made with the help of [Claude Code](https://claude.com/claude-code).
 

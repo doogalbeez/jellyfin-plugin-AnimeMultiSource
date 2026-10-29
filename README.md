@@ -147,7 +147,8 @@ See [CHANGELOG.md](CHANGELOG.md) for full details.
 
 | Version | Date | By | Highlights |
 |---|---|---|---|
-| **1.0.8.0** (fork) | 2026-10-17 | [doogalbeez](https://github.com/doogalbeez) | Sync settings (auto interval, Sync now), "Anime Multi Source" badge, AniDB rate-limit and cache fixes for large libraries, season/tag/Fanart.tv/TVDB/upcoming-episode fixes |
+| **1.0.8.1** (fork) | 2026-10-28 | [doogalbeez](https://github.com/doogalbeez) | Catalog updates no longer leave the old version loaded next to the new one |
+| **1.0.8.0** (fork) | 2026-10-28 | [doogalbeez](https://github.com/doogalbeez) | Sync settings (auto interval, Sync now), "Anime Multi Source" badge, AniDB rate-limit and cache fixes for large libraries, season/tag/Fanart.tv/TVDB/upcoming-episode fixes |
 | 1.0.7.0 (fork) | 2026-10 | [doogalbeez](https://github.com/doogalbeez) | Jellyfin 12.2 support, movie provider, "Fill in missing anime metadata" task, per-item progress log, sidebar link, cast language setting, Jikan fast-fail, TMDb/runtime/External ID fixes, new logo |
 | 1.0.6.14 | 2026-08-10 | [webbster64](https://github.com/webbster64) | AnimeSchedule Upcoming fixes for multi-season anime, status fixes, "Refresh Recently-Aired Anime Tags" task |
 | 1.0.6.5 | 2026-08-10 | webbster64 | Self-healing stale plugin version folders, config recovery |
