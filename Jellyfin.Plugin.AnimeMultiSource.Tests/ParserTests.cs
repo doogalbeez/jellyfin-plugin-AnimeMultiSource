@@ -183,4 +183,17 @@ public class ParserTests
             Directory.Delete(dir, true);
         }
     }
+
+    [Theory]
+    [InlineData("Anime Multi Source_1.0.7.0", null, true)]          // catalog install, older
+    [InlineData("AnimeMultiSource_1.0.7.103", null, true)]          // manual install, older
+    [InlineData("Anime Multi Source_1.1.0.5", null, false)]         // newer: the update just installed
+    [InlineData("Anime Multi Source_1.0.8.0", null, false)]         // same version
+    [InlineData("AnimeMultiSource_x", "{\"version\":\"1.0.6.0\"}", true)] // meta.json wins over the name
+    [InlineData("Other Plugin_1.0.0.0", null, false)]
+    [InlineData("AnimeMultiSource", null, false)]
+    public void StaleFolder_OnlyOlderVersionsOfThisPlugin(string folder, string? meta, bool expected)
+    {
+        Assert.Equal(expected, Plugin.IsOlderVersionFolder(folder, meta, new Version(1, 0, 8, 0)));
+    }
 }

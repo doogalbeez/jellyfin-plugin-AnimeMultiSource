@@ -56,15 +56,15 @@ namespace Jellyfin.Plugin.AnimeMultiSource
                         continue;
                     }
 
-                    var folderName = Path.GetFileName(directory);
-                    if (string.IsNullOrEmpty(folderName) || !folderName.StartsWith(Name, StringComparison.OrdinalIgnoreCase))
-                    {
-                        continue;
-                    }
-
                     if (!File.Exists(Path.Combine(directory, ownDllName)))
                     {
                         // Doesn't look like a version of this same plugin; leave it alone.
+                        continue;
+                    }
+
+                    var metaPath = Path.Combine(directory, "meta.json");
+                    if (!IsOlderVersionFolder(Path.GetFileName(directory), File.Exists(metaPath) ? File.ReadAllText(metaPath) : null, Version))
+                    {
                         continue;
                     }
 
@@ -83,6 +83,37 @@ namespace Jellyfin.Plugin.AnimeMultiSource
             {
                 logger.LogWarning(ex, "Failed to check for stale plugin version folders.");
             }
+        }
+
+        // Catalog installs name the folder after the manifest ("Anime Multi Source_1.0.8.0"), manual ones often
+        // "AnimeMultiSource_1.0.8.0". Only a strictly older version is stale: when two versions load at once,
+        // the old one must not delete the update that was just installed.
+        public static bool IsOlderVersionFolder(string folderName, string? metaJson, Version ownVersion)
+        {
+            var underscore = folderName.LastIndexOf('_');
+            if (underscore < 0 || !string.Equals(folderName[..underscore].Replace(" ", string.Empty, StringComparison.Ordinal), Constants.PluginName, StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            string? versionText = folderName[(underscore + 1)..];
+            if (metaJson != null)
+            {
+                try
+                {
+                    using var meta = System.Text.Json.JsonDocument.Parse(metaJson);
+                    if (meta.RootElement.TryGetProperty("version", out var v))
+                    {
+                        versionText = v.GetString();
+                    }
+                }
+                catch (System.Text.Json.JsonException)
+                {
+                    // Fall back to the version in the folder name.
+                }
+            }
+
+            return Version.TryParse(versionText, out var version) && version < ownVersion;
         }
 
         public static Plugin? Instance { get; private set; }
